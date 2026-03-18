@@ -24,3 +24,7 @@
    ```
 
 That's it—`uv sync` creates the venv automatically and installs all dependencies from `pyproject.toml` and `uv.lock`.
+
+
+For Alex:
+C:\Users\alexn\AppData\Local\Python\pythoncore-3.14-64\Scripts\uv.exe sync
