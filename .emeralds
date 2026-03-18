@@ -1,0 +1,10 @@
+
+buy any order that crosses 10k.
+    - if someone selling below 10k buy
+    - if someoen buying above 10k sell
+
+To beat the queue buy/ sell system:
+    place a bid or ask just better than the existing bid
+
+If bought too much/sold too much:
+    - unwind back to flat (sell all/buy back at the true price of 10k)
