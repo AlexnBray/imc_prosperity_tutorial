@@ -16,7 +16,6 @@ import math
 # ── Serialisation helpers ────────────────────────────────────────────────────
 
 class Logger:
-    """Flush-safe logger that stays within the submission log limit."""
 
     def __init__(self) -> None:
         self.logs = ""
@@ -121,7 +120,7 @@ so put a couple of ticks inside that to get filled while still earning edge
 """
 EMERALDS_FAIR_VALUE = 10_000
 
-EMERALDS_SPREAD     = 2      # ticks both sides
+EMERALDS_SPREAD     = 7      # ticks both sides
 EMERALDS_TAKE_EDGE  = 1      # lift up if order book crosses the fair valu by at least this much
 
 """
@@ -129,7 +128,7 @@ tomatoes are drifting price same as P3.
 a short ema can be used 
 """
 
-TOMATOES_EMA_SPAN   = 8      
+TOMATOES_EMA_SPAN   = 6.5  
 TOMATOES_TAKE_EDGE  = 1    
 
 
