@@ -34,7 +34,7 @@ def serve_layout():
                             id="directory-input",
                             type="text",
                             placeholder="Enter directory path",
-                            value="backtests\imc_official",
+                            value=r"backtests\imc_official",
                             debounce=True,
                         ),
                         className="two columns",
