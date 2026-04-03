@@ -65,14 +65,7 @@ Fix your system path Alex: C:\Users\alexn\AppData\Local\Python\pythoncore-3.14-6
 
 3. Run the Monte Carlo runner with a trader sample:
    ```bash
-   prosperity4mcbt example_trader.py --quick --out /tmp/mc_run/dashboard.json
-   ```
-
-4. Start the visualizer frontend:
-   ```bash
-   cd visualizer
-   npm install
-   npm run dev
+   prosperity4mcbt example_trader.py --quick --vis --out /tmp/mc_run/dashboard.json
    ```
 
 5. Read through backtester README for more info
