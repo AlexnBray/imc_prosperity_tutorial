@@ -53,14 +53,6 @@ dev-dependencies = [
     "ruff>=0.9.7",
 ]
 
-[tool.uv.workspace]
-members = [
-    ".",
-]
-
-[tool.uv.sources]
-prosperity4mcbt = { workspace = true, editable = true }
-
 [tool.ruff]
 line-length = 120
 
