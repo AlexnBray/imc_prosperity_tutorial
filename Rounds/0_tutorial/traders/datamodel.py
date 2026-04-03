@@ -21,7 +21,7 @@ class Listing:
                  
 class ConversionObservation:
 
-    def __init__(self, bidPrice: float, askPrice: float, transportFees: float, exportTariff: float, importTariff: float, sugarPrice: float, sunlightIndex: float, humidity: float):
+    def __init__(self, bidPrice: float, askPrice: float, transportFees: float, exportTariff: float, importTariff: float, sunlight: float, humidity: float):
         self.bidPrice = bidPrice
         self.askPrice = askPrice
         self.transportFees = transportFees
@@ -38,7 +38,7 @@ class Observation:
         self.conversionObservations = conversionObservations
         
     def __str__(self) -> str:
-        return "(plainValueObservations: " + jsonpickle.encode(self.plainValueObservations) + ", conversionObservations: " + jsonpickle.encode(self.conversionObservations) + ")" # type: ignore
+        return "(plainValueObservations: " + jsonpickle.encode(self.plainValueObservations) + ", conversionObservations: " + jsonpickle.encode(self.conversionObservations) + ")"
      
 
 class Order:
@@ -64,7 +64,7 @@ class OrderDepth:
 
 class Trade:
 
-    def __init__(self, symbol: Symbol, price: int, quantity: int, buyer: UserId=None, seller: UserId=None, timestamp: int=0) -> None: # type: ignore
+    def __init__(self, symbol: Symbol, price: int, quantity: int, buyer: UserId=None, seller: UserId=None, timestamp: int=0) -> None:
         self.symbol = symbol
         self.price: int = price
         self.quantity: int = quantity
