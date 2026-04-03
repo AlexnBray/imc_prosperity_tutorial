@@ -1,6 +1,6 @@
 # Trading Visualiser for Backtests
 
-This is Team Linear Utility's visualiser from Prosperity 2 that i have modified to function with Prosperity 4 
+This is Team Linear Utility's visualiser from Prosperity 2 that has been modified to function with Prosperity 4 
 Original Repo: https://github.com/ericcccsliu/imc-prosperity-2
 
 **How to Use**
