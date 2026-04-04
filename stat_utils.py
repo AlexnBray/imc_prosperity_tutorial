@@ -1,41 +1,6 @@
 import numpy as np
 import pandas as pd
 
-#Price calculation functions, as the order back is very shallow only 3 levels, these just use the best bid and ask.
-
-def mid_price(price_df):
-    """"
-    Mid price using best bid and ask.
-
-     mid = (bid_1 + ask_1) / 2
-    """
-    bestdbid = price_df["bid1"]
-    bestask = price_df["ask1"]
-    price_series = (bestdbid + bestask) / 2
-    return price_series
-
-def calculate_micro_price(df: pd.DataFrame):
-    """
-    Micro price using best bid/ask prices and volumes.
-
-    micro = ask_1 * (bid_v1 / total_v) + bid_1 * (ask_v1 / total_v)
-
-    Returns NaN where volumes are missing or zero.
-    """
-    bid_p, ask_p = df["bid_price_1"], df["ask_price_1"]
-    bid_v, ask_v = df["bid_volume_1"], df["ask_volume_1"]
-
-    total_v = bid_v + ask_v
-    valid = total_v > 0
-
-    micro = pd.Series(np.nan, index=df.index)
-    micro[valid] = (
-        ask_p[valid] * (bid_v[valid] / total_v[valid])
-        + bid_p[valid] * (ask_v[valid] / total_v[valid])
-    )
-
-    return micro
-
 # Functions copied from the FinTech Python Examples, with AI descriptions added for IMC Prosperity 4 context.
 
 def compute_returns(price: pd.Series) -> pd.DataFrame:
@@ -84,8 +49,8 @@ def distribution_summary(x):
         "variance": x.var(ddof=1),
         "skewness": skew(x, bias=False),
         "kurtosis": kurtosis(x, fisher=False, bias=False),
-        "jb_stat": jb.statistic(),
-        "jb_pvalue": jb.pvalue()
+        "jb_stat": jb.statistic,
+        "jb_pvalue": jb.pvalue
     }
 
 def acf_pacf_diagnostics(r, nlags=20):
@@ -107,7 +72,7 @@ def acf_pacf_diagnostics(r, nlags=20):
 
     r = r.dropna()
     acf_vals = acf(r, nlags=nlags, fft=True)  # includes lag 0
-    pacf_vals = pacf(r, nlags=nlags, method="ywm")  # Yule-Walker MLE variant
+    pacf_vals = pacf(r, nlags=nlags, method="ols")  # Yule-Walker MLE variant
     return acf_vals, pacf_vals
 
 def fit_arima_and_forecast(returns, p=1, q=1):
