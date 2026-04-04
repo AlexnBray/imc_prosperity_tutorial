@@ -502,105 +502,114 @@ def order_levels_pattern(df: pd.DataFrame, n_levels: int = None) -> None:
 # SECTION 4 — Trade & Execution Analysis (Spoofing vs. Real)
 # ═════════════════════════════════════════════════════════════════════════════
 
-def analyze_deep_level_spoofing(ob_df: pd.DataFrame, trade_df: pd.DataFrame, deep_level: int = None) -> dict:
-    """
-    Cross-references order book volume withdrawals against the trade logs 
-    to calculate the Fill Ratio of deep-level (L3) orders.
+def calculate_baseline_fill_rate(ob_df: pd.DataFrame, trade_df: pd.DataFrame, level: int) -> dict:
+    """Calculates overall, bid-only, and ask-only fill rates for a level."""
+    # Create a copy with diffs calculated BEFORE filtering to avoid NaN/incorrect jumps
+    df = ob_df[['timestamp', f'bid_price_{level}', f'ask_price_{level}', 
+                f'bid_volume_{level}', f'ask_volume_{level}']].copy()
+    
+    trade_vol_col = 'quantity' if 'quantity' in trade_df.columns else 'volume'
+    
+    # Calculate deltas on the full dataframe first
+    df['b_vol_diff'] = df[f'bid_volume_{level}'].diff()
+    df['a_vol_diff'] = df[f'ask_volume_{level}'].diff()
+    df['b_price_diff'] = df[f'bid_price_{level}'].diff()
+    df['a_price_diff'] = df[f'ask_price_{level}'].diff()
 
-    Identifies if the bot placing deep-level orders in Prosperity is:
-      A) Spoofing (placing and cancelling orders to manipulate the mid-price)
-      B) Providing real liquidity (orders are actually getting filled by market participants)
-
-    Parameters
-    ----------
-    ob_df      : pd.DataFrame
-                 Order book dataframe with timestamps, prices, and volumes.
-    trade_df   : pd.DataFrame
-                 Trade execution logs containing 'timestamp', 'price', and 'quantity' (or 'volume').
-    deep_level : int
-                 The order book level to analyze. If None, auto-detected.
-
-    Returns
-    -------
-    dict
-        Dictionary containing Fill Ratio, Total Volume Withdrawn, and Total Executed Volume.
-    """
+    # 1. Isolate withdrawals (Volume down AND price stayed the same)
+    bid_w = df[(df['b_vol_diff'] < 0) & (df['b_price_diff'] == 0)].copy()
+    ask_w = df[(df['a_vol_diff'] < 0) & (df['a_price_diff'] == 0)].copy()
+    
+    # 2. Standardize data for matching
+    bid_w['price'], bid_w['vol'] = bid_w[f'bid_price_{level}'], bid_w['b_vol_diff'].abs()
+    ask_w['price'], ask_w['vol'] = ask_w[f'ask_price_{level}'], ask_w['a_vol_diff'].abs()
+    
+    results = {}
+    # Use a list of tuples to keep code clean
+    sides = [('total', pd.concat([bid_w, ask_w])), ('bid', bid_w), ('ask', ask_w)]
+    
+    for side, w_df in sides:
+        if w_df.empty:
+            results[side] = {"fill_rate": 0.0, "withdrawn": 0, "executed": 0}
+            continue
+            
+        total_w = w_df['vol'].sum()
+        
+        # Merge on timestamp and price to find trades that hit that specific level
+        matched = pd.merge(w_df[['timestamp', 'price', 'vol']], 
+                           trade_df[['timestamp', 'price', trade_vol_col]], 
+                           on=['timestamp', 'price'], how='inner')
+        
+        total_e = matched[trade_vol_col].sum() if not matched.empty else 0
+        
+        results[side] = {
+            "fill_rate": float(total_e / total_w) if total_w > 0 else 0.0,
+            "withdrawn": int(total_w),
+            "executed": int(total_e)
+        }
+        
+    return results
+def analyse_deep_level_spoofing(ob_df: pd.DataFrame, trade_df: pd.DataFrame, deep_level: int = None) -> dict:
     if deep_level is None:
         deep_level = detect_levels(ob_df)
     
-    DL = deep_level
-    print("=" * 80)
-    print(f"SECTION 4: Spoofing & Trade Execution Analysis (L{DL})")
-    print("=" * 80)
-
-    # Standardize trade dataframe volume column (Prosperity logs usually use 'quantity')
-    trade_vol_col = 'quantity' if 'quantity' in trade_df.columns else 'volume'
-    if trade_vol_col not in trade_df.columns:
-        print("  ❌ ERROR: Trade dataframe must contain 'quantity' or 'volume' column.")
-        return {}
-
-    # Isolate relevant columns to prevent altering the main dataframe
-    df = ob_df[['timestamp', f'bid_price_{DL}', f'ask_price_{DL}', f'bid_volume_{DL}', f'ask_volume_{DL}']].copy()
+    stats = calculate_baseline_fill_rate(ob_df, trade_df, level=deep_level)
     
-    # Calculate step-to-step volume differences
-    df['bid_vol_delta'] = df[f'bid_volume_{DL}'].fillna(0).diff()
-    df['ask_vol_delta'] = df[f'ask_volume_{DL}'].fillna(0).diff()
-
-    # Identify rows where volume was WITHDRAWN (negative delta)
-    bid_withdrawals = df[df['bid_vol_delta'] < 0].copy()
-    ask_withdrawals = df[df['ask_vol_delta'] < 0].copy()
-
-    # Format dataframes to merge with trade logs
-    bid_withdrawals['price'] = bid_withdrawals[f'bid_price_{DL}']
-    bid_withdrawals['withdrawn_vol'] = bid_withdrawals['bid_vol_delta'].abs()
-    
-    ask_withdrawals['price'] = ask_withdrawals[f'ask_price_{DL}']
-    ask_withdrawals['withdrawn_vol'] = ask_withdrawals['ask_vol_delta'].abs()
-
-    all_withdrawals = pd.concat([
-        bid_withdrawals[['timestamp', 'price', 'withdrawn_vol']], 
-        ask_withdrawals[['timestamp', 'price', 'withdrawn_vol']]
-    ])
-
-    # Calculate total theoretical volume that disappeared from the deep level
-    total_withdrawn = all_withdrawals['withdrawn_vol'].sum()
-
-    # Merge withdrawals with actual trades that occurred at the same timestamp and price
-    matched_trades = pd.merge(
-        all_withdrawals, 
-        trade_df[['timestamp', 'price', trade_vol_col]], 
-        on=['timestamp', 'price'], 
-        how='inner'
-    )
-
-    # Calculate total volume that was actually filled at that specific timestamp and price
-    total_executed = matched_trades[trade_vol_col].sum() if not matched_trades.empty else 0
-
-    # Calculate Fill Ratio
-    fill_ratio = (total_executed / total_withdrawn) if total_withdrawn > 0 else 0
-
-    print(f"  Total L{DL} Volume Withdrawn : {total_withdrawn:,.0f}")
-    print(f"  Total L{DL} Volume Executed  : {total_executed:,.0f}")
-    print(f"  Fill Ratio                 : {fill_ratio:.2%}")
+    print("=" * 80)
+    print(f"SECTION 4: Spoofing Analysis (L{deep_level}) | Bid vs Ask Breakdown")
+    print("=" * 80)
+    print(f"{'Side':<10} {'Withdrawn':>12} {'Executed':>12} {'Fill Ratio':>12}")
     print("-" * 80)
-
-    # Actionable Verdict based on mathematical threshold
-    if total_withdrawn == 0:
-        print(f"  ⚠️  INSUFFICIENT DATA: No L{DL} order withdrawals detected.")
-    elif fill_ratio < 0.05:
-        print(f"  🚨 VERDICT: HIGH PROBABILITY SPOOFING")
-        print(f"  L{DL} orders vanish without being hit. FADE THE SPIKE.")
-    elif fill_ratio > 0.40:
-        print(f"  ✅ VERDICT: REAL LIQUIDITY PROVIDER")
-        print(f"  L{DL} orders are being executed. DO NOT FADE, follow the flow.")
-    else:
-        print(f"  ⚠️  VERDICT: MIXED REGIME")
-        print(f"  Partial fills detected. Treat L{DL} as a soft support/resistance wall.")
+    
+    for side in ['total', 'bid', 'ask']:
+        s = stats[side]
+        print(f"{side.upper():<10} {s['withdrawn']:>12,.0f} {s['executed']:>12,.0f} {s['fill_rate']:>12.2%}")
         
+    # Per-side Verdicts
+    for side in ['bid', 'ask']:
+        rate = stats[side]['fill_rate']
+        if stats[side]['withdrawn'] == 0: continue
+        verdict = "🚨 SPOOFING" if rate < 0.05 else "✅ REAL" if rate > 0.40 else "⚠️ MIXED"
+        print(f"  VERDICT ({side.upper()}): {verdict}")
+
+    print("=" * 80)
+    return stats
+
+def analyse_cross_level_spoofing(ob_df: pd.DataFrame, trade_df: pd.DataFrame) -> dict:
+    print("=" * 80)
+    print("SECTION 5: CROSS-LEVEL VALIDATION (Directional L1/L2 vs L3)")
     print("=" * 80)
 
-    return {
-        "fill_ratio": fill_ratio,
-        "total_withdrawn": total_withdrawn,
-        "total_executed": total_executed
-    }
+    # 1. Get Session Baselines
+    base_l1 = calculate_baseline_fill_rate(ob_df, trade_df, level=1)
+    base_l2 = calculate_baseline_fill_rate(ob_df, trade_df, level=2)
+    
+    # 2. Identify Directional L3 Activity
+    l3_bid_ts = ob_df[ob_df['bid_volume_3'] > 0]['timestamp'].unique()
+    l3_ask_ts = ob_df[ob_df['ask_volume_3'] > 0]['timestamp'].unique()
+    
+    # 3. Calculate "During L3" rates
+    # Logic: How does L1 Bid fill when L3 Bid is present?
+    l1_bid_during_l3 = calculate_baseline_fill_rate(ob_df[ob_df['timestamp'].isin(l3_bid_ts)], trade_df, level=1)['bid']
+    l1_ask_during_l3 = calculate_baseline_fill_rate(ob_df[ob_df['timestamp'].isin(l3_ask_ts)], trade_df, level=1)['ask']
+    
+    l2_bid_during_l3 = calculate_baseline_fill_rate(ob_df[ob_df['timestamp'].isin(l3_bid_ts)], trade_df, level=2)['bid']
+    l2_ask_during_l3 = calculate_baseline_fill_rate(ob_df[ob_df['timestamp'].isin(l3_ask_ts)], trade_df, level=2)['ask']
+
+    # 4. Reporting
+    comparisons = [
+        ("L1 Bid", base_l1['bid']['fill_rate'], l1_bid_during_l3['fill_rate']),
+        ("L1 Ask", base_l1['ask']['fill_rate'], l1_ask_during_l3['fill_rate']),
+        ("L2 Bid", base_l2['bid']['fill_rate'], l2_bid_during_l3['fill_rate']),
+        ("L2 Ask", base_l2['ask']['fill_rate'], l2_ask_during_l3['fill_rate']),
+    ]
+
+    print(f"{'Level/Side':<15} {'Baseline':>12} {'During L3':>12} {'Delta':>12}")
+    print("-" * 80)
+    for label, base, during in comparisons:
+        delta = during - base
+        alert = "🚨" if delta < -0.15 else "✅" if abs(delta) < 0.05 else "  "
+        print(f"{label:<15} {base:>12.2%} {during:>12.2%} {delta:>11.2%} {alert}")
+
+    print("=" * 80)
+    return {"l1_bid_delta": l1_bid_during_l3['fill_rate'] - base_l1['bid']['fill_rate']}
