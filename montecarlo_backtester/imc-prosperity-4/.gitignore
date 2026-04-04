@@ -3,8 +3,8 @@
 .prosperity_token
 .prosperity_refresh
 .env.local
-CLAUDE.md
-AGENTS.md
+#CLAUDE.md
+#AGENTS.md
 
 __pycache__/
 *.pyc

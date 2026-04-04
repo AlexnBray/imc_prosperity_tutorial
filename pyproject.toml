@@ -5,6 +5,7 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "arch>=8.0.0",
     "blinker==1.9.0",
     "chart-studio==1.1.0",
     "dash==4.1.0",
@@ -19,6 +20,7 @@ dependencies = [
     "requests==2.33.1",
     "scipy>=1.17.1",
     "statistics>=1.0.3.5",
+    "statsmodels>=0.14.6",
     "typing>=3.10.0.0",
 ]
 
