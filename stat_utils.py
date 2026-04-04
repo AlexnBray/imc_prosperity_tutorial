@@ -1,15 +1,40 @@
 import numpy as np
+import pandas as pd
 
-#Price calculation functions
+#Price calculation functions, as the order back is very shallow only 3 levels, these just use the best bid and ask.
 
-def mid_price(bid, ask):
-    return mid_price
+def mid_price(price_df):
+    """"
+    Mid price using best bid and ask.
 
-def micro_price():
-    return micro_price
+     mid = (bid_1 + ask_1) / 2
+    """
+    bestdbid = price_df["bid1"]
+    bestask = price_df["ask1"]
+    price_series = (bestdbid + bestask) / 2
+    return price_series
 
-def vwap():
-    return vwap
+def calculate_micro_price(df: pd.DataFrame):
+    """
+    Micro price using best bid/ask prices and volumes.
+
+    micro = ask_1 * (bid_v1 / total_v) + bid_1 * (ask_v1 / total_v)
+
+    Returns NaN where volumes are missing or zero.
+    """
+    bid_p, ask_p = df["bid_price_1"], df["ask_price_1"]
+    bid_v, ask_v = df["bid_volume_1"], df["ask_volume_1"]
+
+    total_v = bid_v + ask_v
+    valid = total_v > 0
+
+    micro = pd.Series(np.nan, index=df.index)
+    micro[valid] = (
+        ask_p[valid] * (bid_v[valid] / total_v[valid])
+        + bid_p[valid] * (ask_v[valid] / total_v[valid])
+    )
+
+    return micro
 
 # Functions copied from the FinTech Python Examples, with AI descriptions added for IMC Prosperity 4 context.
 
@@ -27,8 +52,7 @@ def compute_returns(price: pd.Series) -> pd.DataFrame:
     Returns:    
     pd.DataFrame: DataFrame with columns "R_t" (simple returns), "r_t" (log returns), and "p_t" (log prices).
     '''
-    import numpy as np
-    import pandas as pd
+
     p = price.astype(float).dropna()
     out = pd.DataFrame(index=p.index)
     out["R_t"] = p.pct_change()                 # simple return
@@ -50,7 +74,7 @@ def distribution_summary(x):
     Returns:
     dict: Dictionary with mean, variance, skewness, kurtosis, JB statistic, and p-value.
     """
-    import numpy as np
+
     from scipy.stats import jarque_bera, skew, kurtosis
 
     x = x.dropna()
@@ -218,7 +242,6 @@ def innovation_checks(z):
     Returns:
     dict: P-values from JB, omnibus, and Lilliefors tests.
     """
-    import numpy as np
     from scipy.stats import jarque_bera, normaltest
     from statsmodels.stats.diagnostic import lilliefors
     
