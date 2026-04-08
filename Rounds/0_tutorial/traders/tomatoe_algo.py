@@ -28,18 +28,23 @@ class Trader:
                 
             # Sort the book to get the actual Best Bid and Best Ask
             # (In Prosperity, these are dictionaries where keys are prices)
-            best_bid = max(order_depth.buy_orders.keys())
-            best_ask = min(order_depth.sell_orders.keys())
-            
-            # 4. Calculate the "Anti-Spoof" Mid Price
-            # We use the raw Mid because we know L1 volume is a ghost.
-            mid_price = (best_bid + best_ask) / 2.0
+            sell_orders = sorted(order_depth.sell_orders.items())
+            buy_orders = sorted(order_depth.buy_orders.items(), reverse=True)
+        
+            if not sell_orders or not buy_orders:
+                return orders
+            best_bid = buy_orders[0][0]
+            best_ask = sell_orders[0][0]
+            # Alpha A3: Wall_Mid for fv as l2 is stable liquitdity wall
+            l2_ask = sell_orders[1][0] 
+            l1_bid = buy_orders[1][0] 
+            fv = (l1_bid + l2_ask) / 2.0
             
             # 5. Inventory Management (The Skew)
             # This pushes our 'Fair Value' down if we are long, up if we are short.
             # Sensitivity of 1.0 means for every 40 units, we shift by 1 tick.
             inventory_skew = (current_pos / POSITION_LIMIT) * 2.0
-            acceptable_price = mid_price - inventory_skew
+            acceptable_price = fv - inventory_skew
             
             # 6. Quoting Logic (Market Making)
             
@@ -52,7 +57,7 @@ class Trader:
                 # Maximize the order size to reach the limit
                 buy_quantity = POSITION_LIMIT - current_pos
                 orders.append(Order(product, bid_price, buy_quantity))
-                print(f"TOMATOES BID: {buy_quantity} @ {bid_price} (Mid: {mid_price})")
+                print(f"TOMATOES BID: {buy_quantity} @ {bid_price} (Mid: {fv})")
 
             # --- SELL SIDE (Asks) ---
             if current_pos > -POSITION_LIMIT:
