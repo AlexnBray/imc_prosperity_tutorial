@@ -1,4 +1,5 @@
 import math
+import json
 from typing import Dict, List
 from datamodel import OrderDepth, TradingState, Order, Symbol
 
@@ -92,10 +93,17 @@ class Trader:
             
         return orders, fv
 
-    def trade_tomatoes(self, order_depth: OrderDepth, position: int) -> List[Order]:
+    def trade_tomatoes(self, order_depth: OrderDepth, position: int, prev_fv: float, prev_volatility: float) -> tuple[List[Order], float]:
         orders: List[Order] = []
         limit = 80
+        #grid search these with monte carlo to optimise but not overfit
+        
         soft_limit = 72
+        min_edge = 3 # Alpha A5: Wider spread edge to combat negative-edge fills
+        base_multiplier = 6 #skew base magnitude
+        aggression_factor = 2.5 # Aggression factor increases when current_vol is high
+        vol_alpha = 0.1  # Slow moving vol state
+
         
         sell_orders = sorted(order_depth.sell_orders.items())
         buy_orders = sorted(order_depth.buy_orders.items(), reverse=True)
@@ -103,13 +111,27 @@ class Trader:
         if not sell_orders or not buy_orders:
             return orders
             
-        # Alpha A3: Wall_Mid for fv as l2 is stable liquitdity wall
-        l2_ask = sell_orders[1][0] 
-        l1_bid = buy_orders[1][0] 
-        fv = (l1_bid + l2_ask) / 2.0
+       # Current observation p_t (using Mid-Price)
+        # Using L1 mid-price as the "observable" input for the ARIMA model
+        wall_mid = (sell_orders[1][0] + buy_orders[1][0]) / 2.0
         
-        # Alpha A4: Position-Based Skew (Linear 3-tick lean)
-        skew = (position / soft_limit) * 9
+        # --- ARIMA(0,1,1) / Exponential Smoothing Update ---
+        # p_hat_{t+1} = 0.445 * p_t + 0.555 * p_hat_t
+        if prev_fv == 0: 
+            fv = wall_mid # Cold start initialization
+        else:
+            fv = 0.445 * wall_mid + 0.555 * prev_fv
+
+        price_shock = abs(wall_mid - prev_fv)
+        
+        current_volatility = vol_alpha * price_shock + (1 - vol_alpha) * prev_volatility
+
+        dynamic_multiplier = base_multiplier + (aggression_factor * current_volatility)
+        skew = (position / soft_limit) * dynamic_multiplier
+        
+        # Apply Position-Based Skew (Alpha A4) to the ARIMA FV
+        #skew = (position / soft_limit) * 5
+
         effective_fv = fv - skew
         
         best_ask = sell_orders[0][0]
@@ -134,7 +156,6 @@ class Trader:
                     buy_capacity -= take_vol
                     initial_pos += take_vol
                     
-        initial_pos = position
         for bid_price, bid_vol in buy_orders:
             if bid_price > effective_fv:
                 take_vol = min(bid_vol, sell_capacity)
@@ -149,7 +170,7 @@ class Trader:
                     initial_pos -= take_vol
                     
         # 2. Market Making Quotes (Alphas A2, A5, A6)
-        min_edge = 3 # Alpha A5: Wider spread edge to combat negative-edge fills
+        
         
         my_bid = min(math.floor(effective_fv) - min_edge, best_bid + 1)
         my_ask = max(math.ceil(effective_fv) + min_edge, best_ask - 1)
@@ -173,27 +194,40 @@ class Trader:
         if ask_vol > 0:
             orders.append(Order("TOMATOES", my_ask, -ask_vol))
             
-        return orders, effective_fv
+        return orders, fv, current_volatility
 
     def run(self, state: TradingState) -> tuple[Dict[Symbol, List[Order]], int, str]:
-        """
-        Engine execution loop. Evaluates strategies for all products mapped in the TradingState.
-        """
         result = {}
         conversions = 0
         
-        # Data persistence passed forward directly to maintain standard loop layout
-        trader_data = state.traderData if state.traderData else ""
-        
+        # 1. Parse persistent state
+        if state.traderData:
+            try:
+                data = json.loads(state.traderData)
+            except:
+                data = {}
+        else:
+            data = {}
+
         for product in state.order_depths:
             order_depth: OrderDepth = state.order_depths[product]
             position = state.position.get(product, 0)
+            # Retrieve persistent data
+            prev_fv = data.get(product, 0)
+            # Use a unique key for volatility (e.g., "TOMATOES_vol")
+            prev_volatility = data.get(f"{product}_vol", 0)
             
             if product == "EMERALDS":
                 result[product], current_fv = self.trade_emeralds(order_depth, position)
+                data[product] = current_fv 
             elif product == "TOMATOES":
-                result[product], current_fv = self.trade_tomatoes(order_depth, position)
+                result[product], current_fv, current_volatility = self.trade_tomatoes(order_depth, position, prev_fv, prev_volatility)
+                data[product] = current_fv
+                data[f"{product}_vol"] = current_volatility
         
             self.log_data(state, product, position, result[product], current_fv)
         
-        return result, conversions, trader_data
+        # 2. FIX: Serialize the UPDATED data dictionary, not the original string
+        new_trader_data = json.dumps(data)
+        
+        return result, conversions, new_trader_data
