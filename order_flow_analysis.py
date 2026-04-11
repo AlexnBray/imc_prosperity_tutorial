@@ -200,9 +200,87 @@ def multi_level_micro_price(df: pd.DataFrame, n_levels: int = None) -> pd.Series
     return numerator / denominator.replace(0, float('nan'))
 
 
+def compute_l3_vwap(df: pd.DataFrame, level: int = 3, window: int = 15, include_ask: bool = True) -> pd.Series:
+    """
+    Compute a rolling L3 VWAP at a single depth level.
+
+    This uses the level's bid and optionally ask prices and volumes over a fixed
+    tick window. It is useful for testing whether deep order book pressure at
+    L3 is predictive of future micro price moves.
+    """
+    cols = [f'bid_price_{level}', f'bid_volume_{level}']
+    if include_ask:
+        cols += [f'ask_price_{level}', f'ask_volume_{level}']
+
+    values = df[cols].astype(float).to_numpy()
+    out = np.full(len(values), np.nan, dtype=float)
+
+    for i in range(len(values)):
+        window_vals = values[max(0, i - window + 1): i + 1]
+        num = 0.0
+        den = 0.0
+
+        for row in window_vals:
+            bid_p, bid_v = row[0], row[1]
+            if not np.isnan(bid_p) and not np.isnan(bid_v):
+                num += bid_p * bid_v
+                den += bid_v
+
+            if include_ask:
+                ask_p, ask_v = row[2], row[3]
+                if not np.isnan(ask_p) and not np.isnan(ask_v):
+                    num += ask_p * ask_v
+                    den += ask_v
+
+        if den != 0:
+            out[i] = num / den
+
+    return pd.Series(out, index=df.index)
+
+
+def l3_vwap_above_micro_indicator(
+    df: pd.DataFrame,
+    micro_col: str = 'micro_price',
+    l3_vwap_col: str = 'l3_vwap_15',
+    lookahead: int = 1,
+) -> dict:
+    """
+    Verify whether L3 VWAP above the micro price predicts a subsequent micro price fall.
+
+    Returns a summary of the signal's hit rate, the base rate, and a simple
+    t-test comparing future returns under the signal vs outside it.
+    """
+    s = df[[micro_col, l3_vwap_col]].astype(float).copy()
+    s = s.dropna()
+    s['signal'] = s[l3_vwap_col] > s[micro_col]
+    s['future_delta'] = s[micro_col].shift(-lookahead) - s[micro_col]
+    s['future_pct'] = s['future_delta'] / s[micro_col]
+    s = s.dropna(subset=['future_delta'])
+
+    signal = s[s['signal']]
+    non_signal = s[~s['signal']]
+
+    summary = {
+        'signal_count': len(signal),
+        'signal_next_fall_rate': float((signal['future_delta'] < 0).mean()) if len(signal) else np.nan,
+        'signal_mean_future_return': float(signal['future_pct'].mean()) if len(signal) else np.nan,
+        'base_count': len(non_signal),
+        'base_next_fall_rate': float((non_signal['future_delta'] < 0).mean()) if len(non_signal) else np.nan,
+        'base_mean_future_return': float(non_signal['future_pct'].mean()) if len(non_signal) else np.nan,
+        'fall_rate_diff': float((signal['future_delta'] < 0).mean() - (non_signal['future_delta'] < 0).mean()) if len(signal) and len(non_signal) else np.nan,
+    }
+
+    if len(signal) >= 2 and len(non_signal) >= 2:
+        res = ttest_ind(signal['future_pct'].dropna(), non_signal['future_pct'].dropna(), equal_var=False)
+        summary['ttest_stat'] = float(res.statistic)
+        summary['ttest_pvalue'] = float(res.pvalue)
+
+    return {'summary': summary, 'analysis': s}
+
+
 # ═════════════════════════════════════════════════════════════════════════════
 # SECTION 3 — Order Flow Pattern Analysis
-# ═════════════════════════════════════════════════════════════════════════════
+# ═════════════════════════════════════════════════════════════════════
 
 def order_levels_pattern(df: pd.DataFrame, n_levels: int = None) -> None:
     """

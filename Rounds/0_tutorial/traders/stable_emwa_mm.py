@@ -1,14 +1,19 @@
 import math
 import json
+#mport os
 from typing import Dict, List
 from datamodel import OrderDepth, TradingState, Order, Symbol
+
+#skew_cf = float(os.getenv("SKEW_CF", 6))
+#min_edge = float(os.getenv("MIN_EDGE", 3))
+#drop_edge = float(os.getenv("DROP_EDGE", 7))
 
 class Trader:
 
     def log_data(self, state: TradingState, product: str, position: int, orders: List[Order], fv: float, effective_fv: float):
         """
         Comprehensive logger for ALL order levels.
-        Format: timestamp, product, position, fv, effective_fv, [Bids_JSON], [Asks_JSON]
+        Format: timestamp, product, position, fv, [Bids_JSON], [Asks_JSON]
         """
         # Group orders by price to handle multiple orders at the same level
         bid_map = {}
@@ -48,7 +53,7 @@ class Trader:
         buy_capacity = limit - position
         sell_capacity = limit + position
         
-        # 1. Tactical Taking (Alphas A1, A7, A8)
+        # 1. Tactical Taking 
         for ask_price, ask_vol in sell_orders:
             vol = -ask_vol
             if ask_price < fv:
@@ -56,7 +61,7 @@ class Trader:
                 if take_vol > 0:
                     orders.append(Order("EMERALDS", ask_price, take_vol))
                     buy_capacity -= take_vol
-            elif math.isclose(ask_price, fv, abs_tol=0.1) and abs(initial_pos) <= 8 and initial_pos < 0:
+            elif math.isclose(ask_price, fv, abs_tol=0.1): #and abs(initial_pos) <= 8 and initial_pos < 0:
                 # Fair-value book clearing capped at neutral (Overshoot protection)
                 take_vol = min(vol, buy_capacity, -initial_pos)
                 if take_vol > 0:
@@ -72,7 +77,7 @@ class Trader:
                 if take_vol > 0:
                     orders.append(Order("EMERALDS", bid_price, -take_vol))
                     sell_capacity -= take_vol
-            elif math.isclose(bid_price, fv, abs_tol=0.1) and abs(initial_pos) <= 8 and initial_pos > 0:
+            elif math.isclose(bid_price, fv, abs_tol=0.1): #and abs(initial_pos) <= 8 and initial_pos > 0:
                 # Fair-value book clearing capped at neutral (Overshoot protection)
                 take_vol = min(bid_vol, sell_capacity, initial_pos) 
                 if take_vol > 0:
@@ -80,7 +85,7 @@ class Trader:
                     sell_capacity -= take_vol
                     initial_pos -= take_vol
                     
-        # 2. Market Making Quotes (Alpha A2)
+        # 2. Market Making Quotes
         min_edge = 1
         my_bid = min(math.floor(fv) - min_edge, best_bid + 1)
         my_ask = max(math.ceil(fv) + min_edge, best_ask - 1)
@@ -96,9 +101,10 @@ class Trader:
     def trade_tomatoes(self, order_depth: OrderDepth, position: int, prev_fv: float) -> tuple[List[Order], float]:
         orders: List[Order] = []
         limit = 80
-        soft_limit = 70
-        skew_factor = 0.9# Alpha A4: Position-based skew factor or 0.5 for slighlty more pnl but less stability
-        min_edge = 4 # Wider spread edge to combat negative-edge fills
+        soft_limit = 60 #60
+
+        skew_factor = 2 #2
+        min_edge = 3 #3
         
         sell_orders = sorted(order_depth.sell_orders.items())
         buy_orders = sorted(order_depth.buy_orders.items(), reverse=True)
@@ -117,7 +123,7 @@ class Trader:
         else:
             fv = 0.445 * wall_mid + 0.555 * prev_fv
         
-        # Apply Position-Based Skew (Alpha A4) to the ARIMA FV
+        # Apply Position-Based Skew to the ARIMA FV
         skew = (position / soft_limit) * skew_factor
         effective_fv = fv - skew
         
@@ -128,41 +134,34 @@ class Trader:
         buy_capacity = limit - initial_pos
         sell_capacity = limit + initial_pos
         
-        # 1. Tactical Taking (Alphas A1, A7, A8)
+        # 1. Tactical Taking (Buying)
         for ask_price, ask_vol in sell_orders:
-            vol = -ask_vol
-            if ask_price < effective_fv:
+            vol = -ask_vol  # Volume is usually negative in order_depth.sell_orders
+            
+            # Take the ask if it is at or below our predicted fair value
+            # Removing the constraint allows us to open LONG positions aggressively
+            if ask_price <= effective_fv:
                 take_vol = min(vol, buy_capacity)
                 if take_vol > 0:
                     orders.append(Order("TOMATOES", ask_price, take_vol))
                     buy_capacity -= take_vol
-            elif math.isclose(ask_price, effective_fv, abs_tol=0.1) and abs(initial_pos) <= 8 and initial_pos < 0:
-                take_vol = min(vol, buy_capacity, -initial_pos)
-                if take_vol > 0:
-                    orders.append(Order("TOMATOES", ask_price, take_vol))
-                    buy_capacity -= take_vol
-                    initial_pos += take_vol
-                    
+
+        # 2. Tactical Taking (Selling)
+        
         for bid_price, bid_vol in buy_orders:
-            if bid_price > effective_fv:
+            # Take the bid if it is at or above our predicted fair value
+            # Removing the constraint allows us to open SHORT positions aggressively
+            if bid_price >= effective_fv:
                 take_vol = min(bid_vol, sell_capacity)
                 if take_vol > 0:
                     orders.append(Order("TOMATOES", bid_price, -take_vol))
                     sell_capacity -= take_vol
-            elif math.isclose(bid_price, effective_fv, abs_tol=0.1) and abs(initial_pos) <= 8 and initial_pos > 0:
-                take_vol = min(bid_vol, sell_capacity, initial_pos)
-                if take_vol > 0:
-                    orders.append(Order("TOMATOES", bid_price, -take_vol))
-                    sell_capacity -= take_vol
-                    initial_pos -= take_vol
-                    
-        # 2. Market Making Quotes (Alphas A2, A5, A6)
-        
-        
+
+        # 2. Market Making Quotes 
         my_bid = min(math.floor(effective_fv) - min_edge, best_bid + 1)
         my_ask = max(math.ceil(effective_fv) + min_edge, best_ask - 1)
         
-        # Alpha A6: Soft limit bounds evaluation
+        # Soft limit bounds evaluation
         buys_placed = (limit - position) - buy_capacity
         sells_placed = (limit + position) - sell_capacity
         
@@ -197,6 +196,10 @@ class Trader:
             data = {}
 
         for product in state.order_depths:
+            current_fv = 0.0
+            effective_fv = 0.0
+            result[product] = []
+
             order_depth: OrderDepth = state.order_depths[product]
             position = state.position.get(product, 0)
             prev_fv = data.get(product, 0)

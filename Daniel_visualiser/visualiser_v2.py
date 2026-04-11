@@ -26,6 +26,7 @@ COLORS = {
     "fill_sell": "#e879f9",
     "mid":       "#64748b",
     "fv":        "#ffffff",
+    "effective_fv": "#ff00d4",
     "pos_buy":   "#10b981",   # Green  – cumulative gross buys
     "pos_sell":  "#f43f5e",   # Rose   – cumulative gross sells
     "pos_net":   "#6366f1",   # Indigo – net position
@@ -476,6 +477,10 @@ def update_visuals(data, theme, markers):
         x=dff["timestamp"], y=dff["fv"],
         name="Fair Value", line=dict(color=COLORS["fv"], width=1.5),
     ))
+    fig_price.add_trace(go.Scattergl(
+        x=dff["timestamp"], y=dff["effective_fv"],
+        name="Effective Fair Value", line=dict(color=COLORS["effective_fv"], width=1.5),
+    ))
 
     for side in ["bid", "ask"]:
         for level, style in LEVEL_PARAMS.items():
@@ -506,7 +511,7 @@ def update_visuals(data, theme, markers):
             ))
 
     for prefix, symbol, label_prefix in [("market", "diamond", "Mkt"), ("algo", "x", "Algo")]:
-        for side, label in [("ask", "Buy"), ("bid", "Sell")]:
+        for side, label in [("bid", "Buy"), ("ask", "Sell")]:
             for level in [1, 2, 3]:
                 col_p = f"{prefix}_{side}_fill_{level}_price"
                 col_v = f"{prefix}_{side}_fill_{level}_volume"
@@ -538,9 +543,15 @@ def update_visuals(data, theme, markers):
         name="Net Position", yaxis="y2",
         line_shape="hv", line=dict(color=COLORS["pos_net"]),
     ))
+    fig_pp.add_trace(go.Scattergl(
+        x=dff["timestamp"], y=dff["slope"],
+        name="Slope", yaxis="y2",
+        line_shape="hv", line=dict(color=COLORS["pos_net"]),
+    ))
     fig_pp.update_layout(
         **base_layout,
         hovermode="x unified",
+        legend=dict(groupclick="toggleitem", bgcolor=bg_color, font=dict(color=text_color)),
         yaxis2=dict(overlaying="y", side="right", showgrid=False),
     )
 
@@ -659,9 +670,9 @@ app.clientside_callback(
             const r = data[j];
             [1,2,3].forEach(l => {
                 if (r[`algo_ask_fill_${l}_volume`] > 0)
-                    fills.push({timestamp: r.timestamp, side: 'Algo Buy',  qty: r[`algo_ask_fill_${l}_volume`], price: r[`algo_ask_fill_${l}_price`]});
+                    fills.push({timestamp: r.timestamp, side: 'Algo Sell',  qty: r[`algo_ask_fill_${l}_volume`], price: r[`algo_ask_fill_${l}_price`]});
                 if (r[`algo_bid_fill_${l}_volume`] > 0)
-                    fills.push({timestamp: r.timestamp, side: 'Algo Sell', qty: r[`algo_bid_fill_${l}_volume`], price: r[`algo_bid_fill_${l}_price`]});
+                    fills.push({timestamp: r.timestamp, side: 'Algo Buy', qty: r[`algo_bid_fill_${l}_volume`], price: r[`algo_bid_fill_${l}_price`]});
             });
         }
         return [mkt, algo, fills.slice(0, 8), `T = ${ts}`];

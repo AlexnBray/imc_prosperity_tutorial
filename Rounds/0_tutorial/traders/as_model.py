@@ -1,14 +1,16 @@
 import math
 import json
+import numpy as np
 from typing import Dict, List
 from datamodel import OrderDepth, TradingState, Order, Symbol
+
 
 class Trader:
 
     def log_data(self, state: TradingState, product: str, position: int, orders: List[Order], fv: float, effective_fv: float):
         """
         Comprehensive logger for ALL order levels.
-        Format: timestamp, product, position, fv, effective_fv, [Bids_JSON], [Asks_JSON]
+        Format: timestamp, product, position, fv, [Bids_JSON], [Asks_JSON]
         """
         # Group orders by price to handle multiple orders at the same level
         bid_map = {}
@@ -48,7 +50,7 @@ class Trader:
         buy_capacity = limit - position
         sell_capacity = limit + position
         
-        # 1. Tactical Taking (Alphas A1, A7, A8)
+        # 1. Tactical Taking 
         for ask_price, ask_vol in sell_orders:
             vol = -ask_vol
             if ask_price < fv:
@@ -56,7 +58,7 @@ class Trader:
                 if take_vol > 0:
                     orders.append(Order("EMERALDS", ask_price, take_vol))
                     buy_capacity -= take_vol
-            elif math.isclose(ask_price, fv, abs_tol=0.1) and abs(initial_pos) <= 8 and initial_pos < 0:
+            elif math.isclose(ask_price, fv, abs_tol=0.1): #and abs(initial_pos) <= 8 and initial_pos < 0:
                 # Fair-value book clearing capped at neutral (Overshoot protection)
                 take_vol = min(vol, buy_capacity, -initial_pos)
                 if take_vol > 0:
@@ -72,7 +74,7 @@ class Trader:
                 if take_vol > 0:
                     orders.append(Order("EMERALDS", bid_price, -take_vol))
                     sell_capacity -= take_vol
-            elif math.isclose(bid_price, fv, abs_tol=0.1) and abs(initial_pos) <= 8 and initial_pos > 0:
+            elif math.isclose(bid_price, fv, abs_tol=0.1): #and abs(initial_pos) <= 8 and initial_pos > 0:
                 # Fair-value book clearing capped at neutral (Overshoot protection)
                 take_vol = min(bid_vol, sell_capacity, initial_pos) 
                 if take_vol > 0:
@@ -80,7 +82,7 @@ class Trader:
                     sell_capacity -= take_vol
                     initial_pos -= take_vol
                     
-        # 2. Market Making Quotes (Alpha A2)
+        # 2. Market Making Quotes
         min_edge = 1
         my_bid = min(math.floor(fv) - min_edge, best_bid + 1)
         my_ask = max(math.ceil(fv) + min_edge, best_ask - 1)
@@ -93,95 +95,67 @@ class Trader:
             
         return orders, fv
 
-    def trade_tomatoes(self, order_depth: OrderDepth, position: int, prev_fv: float) -> tuple[List[Order], float]:
+    def trade_tomatoes(self, order_depth: OrderDepth, position: int, mid_prices: List[float]) -> tuple[List[Order], float, List[float]]:
+        """
+            s - mid l2 market price
+            q - difference between current size and counterparty order size
+            gamma - sensitivity parameter (how much our quote should move in response to inventory changes)
+            var - price variance (calculated using mid price over x rolling window)
+            T - time horizon (can be set to 1 for simplicity)
+            k - order book liquidity density
+            r - reservation price
+            delta - optimal spread // 2
+        """
         orders: List[Order] = []
-        limit = 80
-        soft_limit = 70
-        skew_factor = 0.9# Alpha A4: Position-based skew factor or 0.5 for slighlty more pnl but less stability
-        min_edge = 4 # Wider spread edge to combat negative-edge fills
-        
         sell_orders = sorted(order_depth.sell_orders.items())
         buy_orders = sorted(order_depth.buy_orders.items(), reverse=True)
         
         if not sell_orders or not buy_orders:
             return orders
-            
-       # Current observation p_t (using Mid-Price)
-        # Using L1 mid-price as the "observable" input for the ARIMA model
-        wall_mid = (sell_orders[1][0] + buy_orders[1][0]) / 2.0
         
-        # --- ARIMA(0,1,1) / Exponential Smoothing Update ---
-        # p_hat_{t+1} = 0.445 * p_t + 0.555 * p_hat_t
-        if prev_fv == 0: 
-            fv = wall_mid # Cold start initialization
-        else:
-            fv = 0.445 * wall_mid + 0.555 * prev_fv
+        POSITION_LIMIT = 80
+        s = (sell_orders[1][0] + buy_orders[1][0]) / 2
+        q = 0
+        gamma = 0.42
+        var = 0
+        k = 0.0497
+        T = 1
+
+        if int(s) != 0:
+           mid_prices.append(s)
+
+        lookback = 10
+
+        # Performance Fix: Keep only the necessary history
+        mid_prices = mid_prices[-(lookback + 1):]
+
+        if len(mid_prices) < lookback + 1:
+            return orders, mid_prices, 0
         
-        # Apply Position-Based Skew (Alpha A4) to the ARIMA FV
-        skew = (position / soft_limit) * skew_factor
-        effective_fv = fv - skew
-        
-        best_ask = sell_orders[0][0]
-        best_bid = buy_orders[0][0]
-        
-        initial_pos = position
-        buy_capacity = limit - initial_pos
-        sell_capacity = limit + initial_pos
-        
-        # 1. Tactical Taking (Alphas A1, A7, A8)
-        for ask_price, ask_vol in sell_orders:
-            vol = -ask_vol
-            if ask_price < effective_fv:
-                take_vol = min(vol, buy_capacity)
-                if take_vol > 0:
-                    orders.append(Order("TOMATOES", ask_price, take_vol))
-                    buy_capacity -= take_vol
-            elif math.isclose(ask_price, effective_fv, abs_tol=0.1) and abs(initial_pos) <= 8 and initial_pos < 0:
-                take_vol = min(vol, buy_capacity, -initial_pos)
-                if take_vol > 0:
-                    orders.append(Order("TOMATOES", ask_price, take_vol))
-                    buy_capacity -= take_vol
-                    initial_pos += take_vol
-                    
-        for bid_price, bid_vol in buy_orders:
-            if bid_price > effective_fv:
-                take_vol = min(bid_vol, sell_capacity)
-                if take_vol > 0:
-                    orders.append(Order("TOMATOES", bid_price, -take_vol))
-                    sell_capacity -= take_vol
-            elif math.isclose(bid_price, effective_fv, abs_tol=0.1) and abs(initial_pos) <= 8 and initial_pos > 0:
-                take_vol = min(bid_vol, sell_capacity, initial_pos)
-                if take_vol > 0:
-                    orders.append(Order("TOMATOES", bid_price, -take_vol))
-                    sell_capacity -= take_vol
-                    initial_pos -= take_vol
-                    
-        # 2. Market Making Quotes (Alphas A2, A5, A6)
-        
-        
-        my_bid = min(math.floor(effective_fv) - min_edge, best_bid + 1)
-        my_ask = max(math.ceil(effective_fv) + min_edge, best_ask - 1)
-        
-        # Alpha A6: Soft limit bounds evaluation
-        buys_placed = (limit - position) - buy_capacity
-        sells_placed = (limit + position) - sell_capacity
-        
-        pending_buy_pos = position + buys_placed
-        pending_sell_pos = position - sells_placed
-        
-        # Suppress accumulating-side quotes safely while allowing liquidation quotes
-        target_buy_vol = max(0, soft_limit - pending_buy_pos)
-        target_sell_vol = max(0, pending_sell_pos - (-soft_limit))
-        
-        bid_vol = min(target_buy_vol, buy_capacity)
-        ask_vol = min(target_sell_vol, sell_capacity)
-        
-        if bid_vol > 0:
-            orders.append(Order("TOMATOES", my_bid, bid_vol))
-        if ask_vol > 0:
-            orders.append(Order("TOMATOES", my_ask, -ask_vol))
-            
-        return orders, fv, effective_fv
+        returns = np.diff(mid_prices[-(lookback + 1):])
+        var = np.var(returns)
+        q = position
+
+        # Reservation pricing
+        r = s - (q * gamma * var * T)
+
+        # Bid ask spread
+        delta = (gamma * var * T + (2 / gamma * math.log(1 + (gamma / k))))
+
+        # Prices to be sent in
+        new_bid_price = math.floor((r - delta / 2)) 
+        new_ask_price = math.ceil((r + delta / 2))
+
+        buy_qty = POSITION_LIMIT - position
+        if buy_qty > 0:
+            orders.append(Order("TOMATOES", int(new_bid_price), buy_qty))
+
+        sell_qty = -POSITION_LIMIT - position # Will be a negative number
+        if sell_qty < 0:
+            orders.append(Order("TOMATOES", int(new_ask_price), sell_qty))
+
+        # Returning current mid and r (reservation price) as the 'effective fv'
+        return orders, mid_prices, r
 
     def run(self, state: TradingState) -> tuple[Dict[Symbol, List[Order]], int, str]:
         result = {}
@@ -197,17 +171,21 @@ class Trader:
             data = {}
 
         for product in state.order_depths:
+            current_fv = 0.0
+            effective_fv = 0.0
+            result[product] = []
+
             order_depth: OrderDepth = state.order_depths[product]
             position = state.position.get(product, 0)
-            prev_fv = data.get(product, 0)
+            prev_prices = data.get("TOMATOES", [])
             
             if product == "EMERALDS":
                 result[product], current_fv = self.trade_emeralds(order_depth, position)
-                data[product] = current_fv 
                 effective_fv = current_fv # For logging consistency, even though EMERALDS doesn't use it
             elif product == "TOMATOES":
-                result[product], current_fv, effective_fv = self.trade_tomatoes(order_depth, position, prev_fv)
-                data[product] = current_fv 
+                result[product], mid_prices, effective_fv = self.trade_tomatoes(order_depth, position, prev_prices)
+                data[product] = mid_prices
+                current_fv = mid_prices[-1] if mid_prices else 0.0
         
             self.log_data(state, product, position, result[product], current_fv, effective_fv)
         
