@@ -94,6 +94,7 @@ class Trader:
         limit = 80
         soft_limit = 70 #60
         skew_factor = 0.9 #2
+        alpha = 0.45 
         min_edge = 4 #3
         
         sell_orders = sorted(order_depth.sell_orders.items())
@@ -106,7 +107,7 @@ class Trader:
             
         wall_mid = (sell_orders[1][0] + buy_orders[1][0]) / 2.0
         prev_fv = fv_history[-1] if fv_history else wall_mid
-        fv = 0.445 * wall_mid + 0.555 * prev_fv
+        fv = alpha * wall_mid + (1-alpha) * prev_fv
         
         fv_history = fv_history + [fv]
         if len(fv_history) > 50: 

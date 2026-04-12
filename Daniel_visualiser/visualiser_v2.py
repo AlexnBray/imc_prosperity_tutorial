@@ -534,25 +534,59 @@ def update_visuals(data, theme, markers):
 
     # ---- PnL / Net Position ----
     fig_pp = go.Figure()
-    fig_pp.add_trace(go.Scattergl(
+
+    # 1. PnL (Left Axis)
+    fig_pp.add_trace(go.Scatter(
         x=dff["timestamp"], y=dff["profit_and_loss"],
-        name="PnL", line=dict(color=COLORS["pnl"]),
+        name="PnL", 
+        line=dict(color=COLORS["pnl"]),
+        showlegend=True  # Explicitly ensure it shows
     ))
-    fig_pp.add_trace(go.Scattergl(
+
+    # 2. Net Position (Right Axis 1)
+    fig_pp.add_trace(go.Scatter(
         x=dff["timestamp"], y=dff["position"],
-        name="Net Position", yaxis="y2",
-        line_shape="hv", line=dict(color=COLORS["pos_net"]),
+        name="Net Position", 
+        yaxis="y2",
+        line_shape="hv", 
+        line=dict(color=COLORS["pos_net"]),
+        showlegend=True
     ))
-    fig_pp.add_trace(go.Scattergl(
+
+    # 3. Slope (Right Axis 2 - shifted or overlaid)
+    fig_pp.add_trace(go.Bar(
         x=dff["timestamp"], y=dff["slope"],
-        name="Slope", yaxis="y2",
-        line_shape="hv", line=dict(color=COLORS["pos_net"]),
+        name="Slope", 
+        yaxis="y3",             
+        marker_color=[
+            'rgba(0, 200, 100, 0.5)' if val >= 0 else 'rgba(255, 50, 50, 0.5)' 
+            if pd.notnull(val) else 'rgba(0,0,0,0)' 
+            for val in dff['slope']],
+        showlegend=True
     ))
+
     fig_pp.update_layout(
         **base_layout,
         hovermode="x unified",
         legend=dict(groupclick="toggleitem", bgcolor=bg_color, font=dict(color=text_color)),
-        yaxis2=dict(overlaying="y", side="right", showgrid=False),
+        # Primary y-axis
+        yaxis=dict(title="PnL"),
+        # Secondary y-axis
+        yaxis2=dict(
+            title="Position",
+            overlaying="y", 
+            side="right", 
+            showgrid=False
+        ), 
+        # Tertiary y-axis
+        yaxis3=dict(
+            title="Slope",
+            overlaying="y", # Should overlay the primary 'y', not 'y2'
+            side="left", 
+            showgrid=False,
+            anchor="free",  # Prevents it from overlapping the yaxis2 text
+            autoshift=True
+        ),
     )
 
     # ---- Position Breakdown: gross buys / gross sells / net ----
