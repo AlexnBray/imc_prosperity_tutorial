@@ -22,11 +22,12 @@ COLORS = {
     "mkt_ask":  {1: "#390808", 2: "#931616", 3: "#ff4b4b"},
     "algo_bid": {1: "#38bdf8", 2: "#0ea5e9", 3: "#075985"},
     "algo_ask": {1: "#fbbf24", 2: "#d97706", 3: "#78350f"},
-    "fill_buy":  "#22d3ee",
-    "fill_sell": "#e879f9",
+    "fill_buy":  "#ffffff",
+    "fill_sell": "#ffffff",
     "mid":       "#64748b",
     "fv":        "#ffffff",
     "effective_fv": "#ff00d4",
+    "secondary_fv":"#00ccff",
     "pos_buy":   "#10b981",   # Green  – cumulative gross buys
     "pos_sell":  "#f43f5e",   # Rose   – cumulative gross sells
     "pos_net":   "#6366f1",   # Indigo – net position
@@ -234,7 +235,7 @@ def build_metrics_cards(m: dict) -> list:
 
     return [
         _metric_card("Final PnL",        f"{m['final_pnl']:+.2f}",
-                     "seashells",
+                     "XIRECS ",
                      sign_color(m["final_pnl"])),
 
         _metric_card("Sharpe Ratio",     fmt(m["sharpe"]),
@@ -338,13 +339,6 @@ app.layout = html.Div(
                     ),
                     dcc.Graph(id="price-graph",              style={"height": "600px"}),
                     dcc.Graph(id="pos-pnl-graph",            style={"height": "280px"}),
-                    dcc.Graph(id="position-breakdown-graph", style={"height": "240px"}),
-
-                    # ---- Metrics Section ----
-                    html.Hr(className="my-3"),
-                    html.H6("Performance Metrics", className="fw-bold mb-2",
-                            style={"fontFamily": "monospace", "letterSpacing": "0.05em"}),
-                    dbc.Row(id="metrics-cards", className="g-2"),
                     dcc.Graph(id="drawdown-graph", style={"height": "180px"}),
 
                 ], width=9),
@@ -373,6 +367,11 @@ app.layout = html.Div(
                         page_size=5,
                         style_table={"height": "200px", "minHeight": "200px"},
                     ),
+                    # ---- Metrics Section ----
+                    html.Hr(className="my-3"),
+                    html.H6("Performance Metrics", className="fw-bold mb-2",
+                            style={"fontFamily": "monospace", "letterSpacing": "0.05em"}),
+                    dbc.Row(id="metrics-cards", className="g-2"),
                 ], width=3),
             ]),
         ]),
@@ -431,7 +430,6 @@ def filter_by_product(product, data):
 @app.callback(
     Output("price-graph",              "figure"),
     Output("pos-pnl-graph",            "figure"),
-    Output("position-breakdown-graph", "figure"),
     Output("drawdown-graph",           "figure"),
     Output("metrics-cards",            "children"),
     Output("app-wrapper",              "style"),
@@ -481,6 +479,12 @@ def update_visuals(data, theme, markers):
         x=dff["timestamp"], y=dff["effective_fv"],
         name="Effective Fair Value", line=dict(color=COLORS["effective_fv"], width=1.5),
     ))
+    fig_price.add_trace(go.Scattergl(
+        x=dff["timestamp"], y=dff["secondary_fv"],
+        name="signal", line=dict(color=COLORS["secondary_fv"], width=1.5),
+        yaxis="y2"
+    ))
+
 
     for side in ["bid", "ask"]:
         for level, style in LEVEL_PARAMS.items():
@@ -510,19 +514,38 @@ def update_visuals(data, theme, markers):
                             opacity=style["opacity"]),
             ))
 
-    for prefix, symbol, label_prefix in [("market", "diamond", "Mkt"), ("algo", "x", "Algo")]:
+    for prefix, label_prefix in [("market", "Mkt"), ("algo", "Algo")]:
         for side, label in [("bid", "Buy"), ("ask", "Sell")]:
+            # Determine triangle direction based on the side
+            # 'triangle-up' for Buy/Bid, 'triangle-down' for Sell/Ask
+            custom_symbol = "triangle-up" if side == "bid" else "triangle-down"
+            
             for level in [1, 2, 3]:
                 col_p = f"{prefix}_{side}_fill_{level}_price"
                 col_v = f"{prefix}_{side}_fill_{level}_volume"
+                
                 if col_p in dff.columns:
                     fig_price.add_trace(go.Scattergl(
-                        x=dff["timestamp"], y=dff[col_p],
+                        x=dff["timestamp"], 
+                        y=dff[col_p],
                         name=f"{label_prefix} {label} L{level}",
-                        legendgroup="Fills", legendgrouptitle_text="Trade Fills",
+                        legendgroup="Fills", 
+                        legendgrouptitle_text="Trade Fills",
                         mode="markers",
-                        marker=dict(size=dff[col_v], sizemode="area", sizeref=base_sizeref / 4,
-                                    symbol=symbol, color=COLORS[f"fill_{label.lower()}"]),
+                        marker=dict(
+                            size=dff[col_v], 
+                            sizemode="area", 
+                            sizeref=base_sizeref / 4,
+                            symbol=custom_symbol, 
+                            color=COLORS[f"fill_{label.lower()}"],
+                            # Add black outline here
+                            line=dict(
+                                width=1,
+                                color='black'
+                            )
+                        ),
+                        # Optional: helps performance if you have many points
+                        hoverinfo='all'
                     ))
 
     fig_price.update_layout(
@@ -530,6 +553,12 @@ def update_visuals(data, theme, markers):
         hovermode="x unified",
         legend=dict(groupclick="toggleitem", bgcolor=bg_color, font=dict(color=text_color)),
         uirevision=dff["product"].iloc[0] if not dff.empty else True,
+        yaxis2=dict(
+            title="Position",
+            overlaying="y", 
+            side="right", 
+            showgrid=False
+        )
     )
 
     # ---- PnL / Net Position ----
@@ -552,7 +581,7 @@ def update_visuals(data, theme, markers):
         line=dict(color=COLORS["pos_net"]),
         showlegend=True
     ))
-
+    """
     # 3. Slope (Right Axis 2 - shifted or overlaid)
     fig_pp.add_trace(go.Bar(
         x=dff["timestamp"], y=dff["slope"],
@@ -564,7 +593,7 @@ def update_visuals(data, theme, markers):
             for val in dff['slope']],
         showlegend=True
     ))
-
+    """
     fig_pp.update_layout(
         **base_layout,
         hovermode="x unified",
@@ -577,50 +606,23 @@ def update_visuals(data, theme, markers):
             overlaying="y", 
             side="right", 
             showgrid=False
-        ), 
-        # Tertiary y-axis
-        yaxis3=dict(
-            title="Slope",
-            overlaying="y", # Should overlay the primary 'y', not 'y2'
-            side="left", 
-            showgrid=False,
-            anchor="free",  # Prevents it from overlapping the yaxis2 text
-            autoshift=True
-        ),
-    )
+        ))
+    
+    """
+    # Tertiary y-axis
+    yaxis3=dict(
+        title="Slope",
+        overlaying="y", # Should overlay the primary 'y', not 'y2'
+        side="left", 
+        showgrid=False,
+        anchor="free",  # Prevents it from overlapping the yaxis2 text
+        autoshift=True
+    """
+  
 
     # ---- Position Breakdown: gross buys / gross sells / net ----
     cum_buys, cum_sells = compute_fill_series(dff)
     net_pos = dff["position"].ffill().fillna(0)
-
-    fig_pos = go.Figure()
-    fig_pos.add_trace(go.Scattergl(
-        x=dff["timestamp"], y=cum_buys,
-        name="Gross Buys",
-        line=dict(color=COLORS["pos_buy"], width=1.5),
-        fill="tozeroy", fillcolor="rgba(16,185,129,0.08)",
-    ))
-    fig_pos.add_trace(go.Scattergl(
-        x=dff["timestamp"], y=-cum_sells,
-        name="Gross Sells (−)",
-        line=dict(color=COLORS["pos_sell"], width=1.5),
-        fill="tozeroy", fillcolor="rgba(244,63,94,0.08)",
-    ))
-    fig_pos.add_trace(go.Scattergl(
-        x=dff["timestamp"], y=net_pos,
-        name="Net Position",
-        line=dict(color=COLORS["pos_net"], width=2, dash="dot"),
-        line_shape="hv",
-    ))
-    fig_pos.add_hline(y=0, line_color="rgba(148,163,184,0.3)", line_width=1)
-    fig_pos.update_layout(
-        **base_layout,
-        title=dict(text="Position Breakdown", font=dict(size=12, color=text_color), x=0.01),
-        hovermode="x unified",
-        legend=dict(bgcolor=bg_color, font=dict(color=text_color)),
-        yaxis=dict(gridcolor=grid_color),
-        xaxis=dict(gridcolor=grid_color),
-    )
 
     # ---- Drawdown ----
     pnl_series  = dff["profit_and_loss"].ffill().fillna(0)
@@ -647,7 +649,7 @@ def update_visuals(data, theme, markers):
     metrics = compute_metrics(dff)
     cards   = build_metrics_cards(metrics)
 
-    return fig_price, fig_pp, fig_pos, fig_dd, cards, wrapper_style
+    return fig_price, fig_pp, fig_dd, cards, wrapper_style
 
 
 # ---------------------------------------------------------

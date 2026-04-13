@@ -25,7 +25,7 @@ def parse_prosperity_log(file_path: str) -> pd.DataFrame:
                         'position': int(parts[3]),
                         'fv': float(parts[4]),
                         'effective_fv': float(parts[5]),
-                        'slope': float(parts[6])
+                        'secondary_fv': float(parts[6])
                     }
                     bids = parts[7].strip('[]').split(';') if parts[7].strip('[]') else []
                     asks = parts[8].strip('[]').split(';') if parts[8].strip('[]') else []
