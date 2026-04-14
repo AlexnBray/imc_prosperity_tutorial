@@ -121,7 +121,6 @@ def mid_price(df: pd.DataFrame) -> pd.Series:
     return (df['bid_price_1'] + df['ask_price_1']) / 2
 
 
-print(df['wall_mid'].head(50).tolist())
 
 def micro_price(df: pd.DataFrame) -> pd.Series:
     """
