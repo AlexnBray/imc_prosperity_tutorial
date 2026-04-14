@@ -1,10 +1,53 @@
 import sys
 import plotly.graph_objects as go
 from pathlib import Path
+from statsmodels.tsa.arima.model import ARIMA
 import pandas as pd
-
-import pandas as pd
+import numpy as np
 import re
+
+# --- Helper Functions for Indicators ---
+
+def calculate_book_vwap(df):
+    nominal = 0
+    volume = 0
+    for i in range(1, 4):
+        nominal += (df[f'bid_price_{i}'] * df[f'bid_volume_{i}']).fillna(0)
+        nominal += (df[f'ask_price_{i}'] * df[f'ask_volume_{i}']).fillna(0)
+        volume += df[f'bid_volume_{i}'].fillna(0)
+        volume += df[f'ask_volume_{i}'].fillna(0)
+    return nominal / volume
+
+def calculate_ewma(series, span=20):
+    return series.ewm(span=span, adjust=False).mean()
+
+def apply_kalman_filter(series, process_variance=1e-5, measurement_variance=1e-3):
+    """
+    Simple 1D Kalman Filter (Local Level Model).
+    High measurement_variance (R) = Smoother/Slower.
+    High process_variance (Q) = More reactive/Jittery.
+    """
+    n_iter = len(series)
+    xhat = np.zeros(n_iter)      # posterior estimate
+    P = np.zeros(n_iter)         # posterior error estimate
+    xhatminus = np.zeros(n_iter) # prior estimate
+    Pminus = np.zeros(n_iter)    # prior error estimate
+    K = np.zeros(n_iter)         # Kalman gain
+
+    xhat[0] = series.iloc[0]
+    P[0] = 1.0
+
+    for k in range(1, n_iter):
+        # Predict
+        xhatminus[k] = xhat[k-1]
+        Pminus[k] = P[k-1] + process_variance
+        # Update
+        K[k] = Pminus[k] / (Pminus[k] + measurement_variance)
+        xhat[k] = xhatminus[k] + K[k] * (series.iloc[k] - xhatminus[k])
+        P[k] = (1 - K[k]) * Pminus[k]
+    return xhat
+
+# --- Data Loading ---
 
 files = [
     'rounds/1_round/data/prices_round_1_day_-1.csv',
@@ -13,119 +56,110 @@ files = [
 ]
 
 prices = []
-
 for file in files:
-    # 1. Load the data
-    df = pd.read_csv(file, sep=';')
-    
-    # 2. Extract the day from the filename using a simple split or Regex
-    # This looks for a minus sign (optional) followed by digits at the end of the string
-    day_match = re.search(r'day_(-?\d+)', file)
-    if day_match:
-        day_val = int(day_match.group(1))
-        # Add/Overwrite the day column to ensure it's correct
-        df['day'] = day_val
-        
-    prices.append(df)
+    try:
+        df = pd.read_csv(file, sep=';')
+        day_match = re.search(r'day_(-?\d+)', file)
+        if day_match:
+            df['day'] = int(day_match.group(1))
+        prices.append(df)
+    except FileNotFoundError:
+        print(f"Warning: {file} not found.")
 
-# 3. Combine everything into one master DataFrame
 df_total = pd.concat(prices, ignore_index=True)
-
-# 4. Sort by Day and Timestamp so technical indicators (like SMAs) work correctly
 df_total = df_total.sort_values(by=['day', 'timestamp']).reset_index(drop=True)
 
+# --- Visualization Logic ---
 
-
-df_plot = df_total.copy()
-
-# 2. Initialize the figure
 fig = go.Figure()
+products = df_total['product'].unique()
+days = sorted(df_total['day'].unique())
+buttons = []
+current_trace_idx = 0
 
-# Get unique products and days to build the dropdown
-products = df_plot['product'].unique()
-days = df_plot['day'].unique()
-
-# 3. Add a trace for every combination of Product and Day
-trace_metadata = []
 for product in products:
     for day in days:
-        subset = df_plot[(df_plot['product'] == product) & (df_plot['day'] == day)]
+        subset = df_total[(df_total['product'] == product) & (df_total['day'] == day)].copy()
+        if subset.empty:
+            continue
+            
+        traces_in_this_group = 0
         
-        if not subset.empty:
-            fig.add_trace(go.Scatter(
-                x=subset['timestamp'],
-                y=subset['mid_price'],
-                mode='lines+markers',
-                name=f"{product} | Day {day}",
-                visible=False  # Hide all initially
-            ))
-            trace_metadata.append((product, day))
+        # Calculate Indicators
+        subset['VWAP'] = calculate_book_vwap(subset)
+        subset['MID'] = (subset['bid_price_1'] + subset['ask_price_1']) / 2
+        
+        # Apply Filters to VWAP
+        subset['EWMA_VWAP'] = calculate_ewma(subset['VWAP'], span=40)
+        subset['KALMAN_VWAP'] = apply_kalman_filter(subset['VWAP'], measurement_variance=0.05)
+        
+        # Apply Filters to MID
+        subset['EWMA_MID'] = calculate_ewma(subset['MID'], span=40)
+        subset['KALMAN_MID'] = apply_kalman_filter(subset['MID'], measurement_variance=0.05)
 
-# Show the first trace by default
-if fig.data:
-    fig.data[0].visible = True
+        # 1. Main Price Traces
+        fig.add_trace(go.Scatter(x=subset['timestamp'], y=subset['VWAP'], 
+                      name='VWAP', line=dict(color='white', width=1.5), visible=False))
+        traces_in_this_group += 1
 
-# 4. Create the Dropdown Menu (updatemenus)
-buttons = []
-for i, (prod, d) in enumerate(trace_metadata):
-    # Visibility list: True for the current index, False for all others
-    visibility = [False] * len(fig.data)
-    visibility[i] = True
-    
-    button = dict(
-        label=f"{prod} (Day {d})",
-        method="update",
-        args=[
-            {"visible": visibility}, # Update visibility of traces
-            {"title": f"Mid Price: {prod} - Day {d}"} # Update plot title
-        ]
-    )
-    buttons.append(button)
+        fig.add_trace(go.Scatter(x=subset['timestamp'], y=subset['KALMAN_VWAP'], 
+                      name='Kalman (VWAP)', line=dict(color='#FFD700', width=2), visible=False))
+        traces_in_this_group += 1
 
-# 5. Finalize Layout
+        fig.add_trace(go.Scatter(x=subset['timestamp'], y=subset['EWMA_VWAP'], 
+                      name='EWMA (VWAP)', line=dict(color='cyan', width=2, dash='dot'), visible=False))
+        traces_in_this_group += 1
+
+        # 2. Book Depth (Bids/Asks)
+        colors = {'bid': ['#225522', '#338833', '#44BB44'], 
+                  'ask': ['#552222', '#883333', '#BB4444']}
+        
+        for side in ['bid', 'ask']:
+            for level in ['1', '2', '3']:
+                col_name = f'{side}_price_{level}'
+                if col_name in subset.columns:
+                    fig.add_trace(go.Scatter(
+                        x=subset['timestamp'], y=subset[col_name],
+                        name=f'{side.capitalize()} {level}',
+                        line=dict(color=colors[side][int(level)-1], width=1),
+                        visible=False, opacity=0.4
+                    ))
+                    traces_in_this_group += 1
+
+        # Dropdown Mask Logic
+        group_start = current_trace_idx
+        group_end = current_trace_idx + traces_in_this_group
+        
+        buttons.append(dict(
+            label=f"{product} (D{day})",
+            method="update",
+            args=[{"visible": (group_start, group_end)}, 
+                  {"title": f"Order Book Analysis: {product} - Day {day}"}]
+        ))
+        current_trace_idx += traces_in_this_group
+
+# Finalize Visibility Masks
+total_traces = len(fig.data)
+for btn in buttons:
+    start, end = btn['args'][0]['visible']
+    mask = [False] * total_traces
+    for j in range(start, end):
+        mask[j] = True
+    btn['args'][0]['visible'] = mask
+
+# Default View
+if total_traces > 0:
+    first_group_size = sum(buttons[0]['args'][0]['visible'])
+    for i in range(first_group_size):
+        fig.data[i].visible = True
+
 fig.update_layout(
-    updatemenus=[dict(
-        active=0,
-        buttons=buttons,
-        direction="down",
-        showactive=True,
-        x=0.0,
-        xanchor="left",
-        y=1.15,
-        yanchor="top"
-    )],
-    title=f"Price Visualization: {trace_metadata[0][0]} - Day {trace_metadata[0][1]}",
+    updatemenus=[dict(active=0, buttons=buttons, x=0, y=1.15, xanchor='left')],
     xaxis_title="Timestamp",
-    yaxis_title="Mid Price",
-    template="plotly_white",
-    hovermode="x unified"
+    yaxis_title="Price",
+    template="plotly_dark",
+    hovermode="x unified",
+    height=800
 )
 
-# Display the plot
 fig.show()
-          
-#price_df = load_csv(files[0])
-#price_df.head(5)
-
-
-df = prices_obj[2]['ASH_COATED_OSMIUM']
-
-
-
-'''
-
-price_graph = go.Figure()
-price_graph.add_trace(go.Scatter(x=ash_coated_osmium_df.index, y=ash_coated_osmium_df['mid_price'], mode='lines', name='Mid Price'))
-price_graph.add_trace(go.Scatter(x=ash_coated_osmium_df.index, y=ash_coated_osmium_df['micro_price'], mode='lines', name='Micro Price'))
-#price_graph.add_trace(go.Scatter(x=tomatoe_price_df.index, y=tomatoe_price_df['l3_vwap_15'], mode='lines', name='L3 VWAP (15)'))
-
-price_graph.add_trace(go.Scatter(x=ash_coated_osmium_df.index, y=ash_coated_osmium_df['bid_price_1'], mode='lines', name='Best Bid Price'))
-price_graph.add_trace(go.Scatter(x=ash_coated_osmium_df.index, y=ash_coated_osmium_df['bid_price_2'], mode='lines', name='Level 2 Bid Price'))
-price_graph.add_trace(go.Scatter(x=ash_coated_osmium_df.index, y=ash_coated_osmium_df['bid_price_3'], mode='markers', name='Level 3 Bid Price'))
-
-price_graph.add_trace(go.Scatter(x=ash_coated_osmium_df.index, y=ash_coated_osmium_df['ask_price_1'], mode='lines', name='Best Ask Price'))
-price_graph.add_trace(go.Scatter(x=ash_coated_osmium_df.index, y=ash_coated_osmium_df['ask_price_2'], mode='lines', name='Level 2 Ask Price'))
-price_graph.add_trace(go.Scatter(x=ash_coated_osmium_df.index, y=ash_coated_osmium_df['ask_price_3'], mode='markers', name='Level 3 Ask Price'))
-price_graph.show()
-
-'''
