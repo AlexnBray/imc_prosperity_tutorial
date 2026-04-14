@@ -235,7 +235,9 @@ class Trader:
         if sell_qty < 0:
             orders.append(Order("TOMATOES", int(new_ask_price), sell_qty))
 
-        return orders, mid_prices, kf_mu, kf_beta, kf_p_out, r, kf_beta
+        
+        effective_fv = r
+        return orders, mid_prices, kf_mu, kf_beta, kf_p_out, effective_fv, kf_beta
 
     def run(self, state: TradingState) -> tuple[Dict[Symbol, List[Order]], int, str]:
         result = {}
