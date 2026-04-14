@@ -87,6 +87,7 @@ for product in products:
         
         # Calculate Indicators
         subset['VWAP'] = calculate_book_vwap(subset)
+        
         subset['MID'] = (subset['bid_price_1'] + subset['ask_price_1']) / 2
         
         # Apply Filters to VWAP
