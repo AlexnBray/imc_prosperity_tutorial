@@ -68,7 +68,6 @@ class Trader:
                     orders.append(Order("EMERALDS", bid_price, -take_vol))
                     sell_capacity -= take_vol
                     initial_pos -= take_vol
-
         # 2. Market Making Quotes
         min_edge = 1
         my_bid = min(math.floor(fv) - min_edge, best_bid + 1)
