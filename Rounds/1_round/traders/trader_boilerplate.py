@@ -1,5 +1,5 @@
 import json
-from typing import Any
+from typing import Any, List
 
 from datamodel import Listing, Observation, Order, OrderDepth, ProsperityEncoder, Symbol, Trade, TradingState
 
@@ -121,12 +121,31 @@ logger = Logger()
 
 
 class Trader:
+    
+    def trade_pepper_root(self, order_depth: OrderDepth, position: int):
+        orders: List[Order] = []
+        return orders
+
+    def trade_osmium(self, order_depth: OrderDepth, position: int):
+        orders: List[Order] = []
+        return orders
+
     def run(self, state: TradingState) -> tuple[dict[Symbol, list[Order]], int, str]:
         result = {}
         conversions = 0
         trader_data = ""
 
-        # TODO: Add logic
+        for product in state.order_depths:
+            order_depth: OrderDepth = state.order_depths[product]
+            position = state.position.get(product, 0)
+            result[product] = []
+
+            if product == "ASH_COATED_OSMIUM":
+                result[product] = self.trade_osmium(order_depth, position)
+
+            if product == "INTARIAN_PEPPER_ROOT":
+                result[product] = self.trade_pepper_root(order_depth, position)
+
 
         logger.flush(state, result, conversions, trader_data)
         return result, conversions, trader_data
