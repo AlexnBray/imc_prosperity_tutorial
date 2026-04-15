@@ -1,0 +1,110 @@
+Metadata-Version: 2.4
+Name: prosperity4mcbt
+Version: 0.0.0
+Summary: Monte Carlo backtester and research CLI for IMC Prosperity 4 algorithms
+Author: Christopher Berman
+Author-email: Jasper van Merle <jaspervmerle@gmail.com>
+License: MIT License
+        
+        Copyright (c) 2024 Jasper van Merle
+        
+        Permission is hereby granted, free of charge, to any person obtaining a copy
+        of this software and associated documentation files (the "Software"), to deal
+        in the Software without restriction, including without limitation the rights
+        to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+        copies of the Software, and to permit persons to whom the Software is
+        furnished to do so, subject to the following conditions:
+        
+        The above copyright notice and this permission notice shall be included in all
+        copies or substantial portions of the Software.
+        
+        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+        IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+        FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+        AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+        LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+        OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+        SOFTWARE.
+        
+Project-URL: Repository, https://github.com/chrispyroberts/imc-prosperity-4
+Project-URL: Issues, https://github.com/chrispyroberts/imc-prosperity-4/issues
+Project-URL: Changelog, https://github.com/chrispyroberts/imc-prosperity-4/releases
+Keywords: imc,prosperity,backtest,backtester
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: Financial and Insurance Industry
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3
+Requires-Python: >=3.9
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: ipython>=8.18.1
+Requires-Dist: jsonpickle>=4.0.2
+Requires-Dist: numpy>=1.26.4
+Requires-Dist: orjson>=3.10.15
+Requires-Dist: pandas>=2.2.3
+Requires-Dist: tqdm>=4.67.1
+Requires-Dist: typer>=0.15.2
+Dynamic: license-file
+
+# prosperity4mcbt package
+
+This directory contains the installable Python package for the repo.
+
+It ships two CLIs:
+
+- `prosperity4mcbt`
+  Rust-backed Monte Carlo backtester for Prosperity 4 tutorial-round strategies.
+- `prosperity3bt`
+  Legacy CSV replay CLI kept for historical playback and compatibility.
+
+## Install
+
+```bash
+uv venv
+uv sync
+source .venv/bin/activate
+uv pip install -e .
+```
+
+## Monte Carlo
+
+Quick run:
+
+```bash
+prosperity4mcbt ../example_trader.py --quick --out ../tmp/example/dashboard.json
+```
+
+Default run:
+
+```bash
+prosperity4mcbt ../example_trader.py --out ../tmp/example/dashboard.json
+```
+
+Heavy run:
+
+```bash
+prosperity4mcbt ../example_trader.py --heavy --out ../tmp/example/dashboard.json
+```
+
+Open the dashboard locally:
+
+```bash
+prosperity4mcbt ../example_trader.py --quick --vis --out ../tmp/example/dashboard.json
+```
+
+## Replay
+
+Replay the tutorial CSVs directly:
+
+```bash
+prosperity3bt ../example_trader.py 0 --data ../data
+```
+
+The bundled frontend in this repo is Monte Carlo-only, so `prosperity3bt --vis` is not supported by the shipped UI.
+
+## Notes
+
+- `prosperity4mcbt` works with normal Prosperity-style `Trader.run(state)` files.
+- No special visualizer logger is required for Monte Carlo mode.
+- Tutorial-round Monte Carlo currently provides empty observations and does not simulate conversions.
