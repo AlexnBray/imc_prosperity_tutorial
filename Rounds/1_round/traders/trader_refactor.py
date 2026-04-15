@@ -1,7 +1,7 @@
 import json
 import math
 import numpy as np
-from typing import Any, List
+from typing import Any, List, Dict
 from datamodel import Listing, Observation, Order, OrderDepth, ProsperityEncoder, Symbol, Trade, TradingState
 
 
@@ -13,7 +13,7 @@ class Logger:
     def print(self, *objects: Any, sep: str = " ", end: str = "\n") -> None:
         self.logs += sep.join(map(str, objects)) + end
 
-    def flush(self, state: TradingState, orders: dict[Symbol, list[Order]], conversions: int, trader_data: str) -> None:
+    def flush(self, state: TradingState, orders: dict[Symbol, list[Order]], conversions: int, trader_data: str, signals: Dict[Symbol, Any]) -> None:
         base_length = len(
             self.to_json(
                 [
@@ -22,6 +22,7 @@ class Logger:
                     conversions,
                     "",
                     "",
+                    signals
                 ]
             )
         )
@@ -37,6 +38,7 @@ class Logger:
                     conversions,
                     self.truncate(trader_data, max_item_length),
                     self.truncate(self.logs, max_item_length),
+                    signals
                 ]
             )
         )
@@ -248,17 +250,10 @@ class Trader:
                 intercepts = prices - (SLOPE * ts)
                 intercept = float(np.mean(intercepts))
             else:
-                # Still initializing intercept: build a small long position.
-                buy_cap = POSITION_LIMIT - position
-                if buy_cap > 0 and sell_orders and best_ask is not None:
-                    # Taker buy from best ask (positive quantity).
-                    take = min(-sell_orders[0][1], buy_cap, 10)
-                    if take > 0:
-                        orders.append(Order(PRODUCT_ID, int(best_ask), int(take)))
-                if buy_cap > 0 and buy_orders and best_bid is not None:
-                    # Passive bid for queue priority.
-                    orders.append(Order(PRODUCT_ID, int(best_bid + 1), min(10, buy_cap)))
-                return orders, price_history, None, None, None
+                # Still initializing the intercept buy up inventory to long
+                if sell_orders: orders.append(Order(PRODUCT_ID, best_ask + 2, -2))
+                if buy_orders: orders.append(Order(PRODUCT_ID, best_bid + 2, 15))
+                return EARLY_EXIT
         
         s = intercept + SLOPE * (current_time + N_ORACLE * 100)
 
@@ -286,54 +281,52 @@ class Trader:
             orders.append(Order(PRODUCT_ID, int(bid_price), buy_cap))
         if sell_cap < 0 and np.isfinite(ask_price):
             orders.append(Order(PRODUCT_ID, int(ask_price), sell_cap))
+        
+        signals = {
+            "s": round(s, 2) if not math.isnan(s) else None,
+            "r": round(r, 2) if not math.isnan(r) else None,
+        }
 
-        return orders, price_history, r, s, intercept
+        return orders, price_history, intercept, signals
 
     def trade_osmium(self, order_depth: OrderDepth, position: int):
         orders: List[Order] = []
         return orders
 
     def run(self, state: TradingState) -> tuple[dict[Symbol, list[Order]], int, str]:
-        # 1. Initialize or Load all persistent data
         if state.traderData:
             try:
                 data = json.loads(state.traderData)
             except Exception:
                 data = {}
         else:
-            data = {}
-        data.setdefault("pepper_history", [])
-        data.setdefault("pepper_intercept", None)
+            data = {
+                "pepper_history": [], 
+                "pepper_intercept": None
+            }
 
         result = {}
+        all_signals = {} # Collect signals for all products here
         conversions = 0
 
-        # 2. Iterate through products
         for product in state.order_depths:
-            order_depth: OrderDepth = state.order_depths[product]
+            order_depth = state.order_depths[product]
             position = state.position.get(product, 0)
 
-            if product == "ASH_COATED_OSMIUM":
-                result[product] = self.trade_osmium(order_depth, position)
-
-            elif product == "INTARIAN_PEPPER_ROOT":
-                # Pass and receive the updated values
-                orders, history, r, s, intercept = self.trade_pepper_root(
+            if product == "INTARIAN_PEPPER_ROOT":
+                orders, history, signals = self.trade_pepper_root(
                     order_depth, 
                     position, 
                     data["pepper_history"], 
-                    state.timestamp,
+                    state.timestamp, 
                     data["pepper_intercept"]
                 )
-                
                 result[product] = orders
-                # Update our data dictionary with the new values from the function
                 data["pepper_history"] = history
-                data["pepper_intercept"] = intercept if intercept is None else float(intercept)
+                data["pepper_intercept"] = intercept
 
-        # 3. Serialize the updated data back to a string for the next tick
         trader_data = json.dumps(data)
-
-        # 4. Finalize
-        logger.flush(state, result, conversions, trader_data)
+        
+        # Pass the signals dictionary to the logger
+        logger.flush(state, result, conversions, trader_data, all_signals)
         return result, conversions, trader_data
