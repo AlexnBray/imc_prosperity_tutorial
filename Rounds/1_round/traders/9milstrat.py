@@ -10,6 +10,7 @@ class Trader:
     KF_Q_LEVEL = 0.2
     KF_Q_DRIFT = 0.01
     KF_DRIFT_EPS = 0.04
+    intercept_found = False
 
     @staticmethod
     def _kalman_local_linear_tick(
@@ -51,91 +52,84 @@ class Trader:
         asks_str = ";".join([f"{p}:{q}" for p, q in sorted(ask_map.items())])
         print(f"[ALGO],{state.timestamp},{product},{position},{fv:.2f},{effective_fv:.2f},{signal:.4f},[{bids_str}],[{asks_str}]")
 
-    def trade_pepper_root(self, order_depth: OrderDepth, position: int, current_time: int, price_series: List[tuple[int, float]]) -> tuple[List[Order], List[tuple[int, float]], float, float]:
+    def trade_pepper_root(self, order_depth: OrderDepth, position: int, current_time: int, price_series: List[tuple[int, float]], stored_intercept: float) -> tuple[List[Order], List[tuple[int, float]], float, float, float]:
         orders: List[Order] = []
         sell_orders = sorted(order_depth.sell_orders.items())
         buy_orders = sorted(order_depth.buy_orders.items(), reverse=True)
 
         POSITION_LIMIT = 80
         position_offset = 60
-        gamma = 0.4
-        k_val = 0.15
-        lookback = 20  # Increased lookback to smooth out single-tick sweeps
+        gamma = 0.002
+        k_val = 0.14
+        lookback = 20 
         slope = 0.001
-        n_offset = 20
-        intercept_initilisation = 8
-        MAX_VAR = 2.0  # Cap the variance to prevent 4000+ tick jumps in r
-
-        ts = np.array([p[0] for p in price_series], dtype=float) if price_series else np.array([])
-        prices = np.array([p[1] for p in price_series], dtype=float) if price_series else np.array([])
-
+        n_offset = 10
+        intercept_initilisation = 15
+        MAX_VAR = 4.0
+        
+        # 1. Update VWAP series
         nominal = 0.0
         volume = 0.0
-
         for i in range(min(2, len(sell_orders))):
             nominal += sell_orders[i][0] * abs(sell_orders[i][1])
             volume += abs(sell_orders[i][1])
-            
         for i in range(min(2, len(buy_orders))):
             nominal += buy_orders[i][0] * abs(buy_orders[i][1])
             volume += abs(buy_orders[i][1])
 
-        # FIX 2: Properly append vwap in BOTH scenarios so the array doesn't freeze
         if volume > 0:
             vwap = nominal / volume
+        elif price_series:
+            # Fallback to trend if no volume but history exists
+            vwap = price_series[-1][1] + (slope * (current_time - price_series[-1][0]))
         else:
-            if len(prices) > 0:
-                time_delta = current_time - ts[-1]
-                vwap = prices[-1] + (slope * time_delta)
-            else:
-                return orders, price_series, 0.0, 0.0
+            # FIRST TICK: No volume and no history
+            if sell_orders: orders.append(Order("INTARIAN_PEPPER_ROOT", 12000 + 10, -5))
+            if buy_orders: orders.append(Order("INTARIAN_PEPPER_ROOT", 1200 + 2, 5))
+            return orders, price_series, s, r, None
 
-        # Append and trim
         price_series.append((current_time, vwap))
         price_series = price_series[-(lookback + 1):]
 
-        # Recalculate arrays after appending
-        ts = np.array([p[0] for p in price_series], dtype=float)
-        prices = np.array([p[1] for p in price_series], dtype=float)
+        ts = np.array([p[0] for p in price_series])
+        prices = np.array([p[1] for p in price_series])
 
-        # FIX 1: Cap the variance to prevent the equation from detonating
+        # 2. Intercept Logic: Calculate once, then lock forever
+        intercept = stored_intercept
+        if intercept is None:
+            if len(prices) >= intercept_initilisation:
+                # Linear regression logic: price = slope * time + intercept
+                intercepts = prices - (slope * ts)
+                intercept = float(np.mean(intercepts))
+            else:
+                # Still initializing the intercept
+                if sell_orders: orders.append(Order("INTARIAN_PEPPER_ROOT", 12000 + 10, -5))
+                if buy_orders: orders.append(Order("INTARIAN_PEPPER_ROOT", 12000 + 2, 5))
+                return orders, price_series, s, r, None
+
+        # 3. Variance & AS Logic
         if len(prices) > 2:
-            returns = np.diff(prices)
-            var = np.clip(np.var(returns), 0.0001, MAX_VAR) 
+            var = np.clip(np.var(np.diff(prices)), 0.0001, MAX_VAR)
         else:
             var = 0.01
 
-        if len(prices) >= intercept_initilisation:
-            intercepts = prices - slope * ts
-            intercept = float(np.mean(intercepts))
-        else:
-            if sell_orders:
-                best_ask = sell_orders[0][0]
-                orders.append(Order("INTARIAN_PEPPER_ROOT", best_ask + 10, -1))
-            if buy_orders:
-                best_bid = buy_orders[0][0]
-                orders.append(Order("INTARIAN_PEPPER_ROOT", best_bid + 1, 10))
-            return orders, price_series, 0.0, 0.0
-
+        # Calculate Fair Value (s) and Reservation Price (r)
         s = intercept + slope * (current_time + n_offset * 100)
-
-        # r will now only shift by a maximum of: 140 * 0.4 * 2.0 = 112 ticks at max inventory
         r = s - ((position - position_offset) * gamma * var)
         delta = (gamma * var + (2 / gamma * math.log(1 + (gamma / k_val))))
 
         bid_price = int(math.floor(r - delta / 2))
         ask_price = int(math.ceil(r + delta / 2))
 
+        # 4. Order Generation
         buy_qty = POSITION_LIMIT - position
         sell_qty = -POSITION_LIMIT - position
-
         if buy_qty > 0:
             orders.append(Order("INTARIAN_PEPPER_ROOT", bid_price, buy_qty))
-
         if sell_qty < 0:
             orders.append(Order("INTARIAN_PEPPER_ROOT", ask_price, sell_qty))
 
-        return orders, price_series, s, r
+        return orders, price_series, s, r, intercept
         
     def trade_osmium(
         self,
@@ -273,18 +267,20 @@ class Trader:
                 self.log_data(state, product, position, orders, n_mu, r_val, sig)
 
             elif product == "INTARIAN_PEPPER_ROOT":
-                # Ensure we handle the list of lists vs list of tuples issue
                 raw_series = data.get("PEP_series", [])
-                price_series = [tuple(p) for p in raw_series] # Force tuple format
+                # Retrieve the intercept; default to None if not found
+                stored_intercept = data.get("PEP_intercept", None)
+                price_series = [tuple(p) for p in raw_series]
 
-                orders, new_series, fv, r_val = self.trade_pepper_root(
-                    order_depth, position, state.timestamp, price_series
+                # Note the 5 return values now
+                orders, new_series, fv, r_val, final_intercept = self.trade_pepper_root(
+                    order_depth, position, state.timestamp, price_series, stored_intercept
                 )
 
                 result[product] = orders
                 data['PEP_series'] = new_series
+                data['PEP_intercept'] = final_intercept # SAVE the intercept here
                 
-                # Only log if we have a valid Fair Value
                 if fv != 0:
                     self.log_data(state, product, position, orders, fv, r_val, 0)
 
