@@ -41,6 +41,13 @@ logger = Logger()
 
 
 class Trader:
+    # ── ASH fair value: fixed anchor + lightweight adaptive correction ─────
+    ASH_FIXED_FAIR = 10_000.0
+    ASH_CORR_ALPHA = 0.015          # slow correction to capture persistent drift
+    ASH_CORR_CLIP = 80.0            # cap correction magnitude (ticks)
+    ASH_Z_WIN = 80
+    ASH_Z_EPS = 1e-6
+
     # ── Variance estimation ───────────────────────────────────────────────
     VAR_WINDOW = 20               # rolling window for σ² (short enough to be
                                   # responsive, long enough to be stable)
@@ -122,6 +129,12 @@ class Trader:
         best_bid = buy_orders[0][0]
         mid = self._safe_mid(sell_orders, buy_orders)
 
+        # ── Fixed fair value + tiny adaptive correction ────────────────────
+        corr = self._ewma(data.get("ash_corr"), mid - self.ASH_FIXED_FAIR, self.ASH_CORR_ALPHA)
+        corr = max(-self.ASH_CORR_CLIP, min(self.ASH_CORR_CLIP, corr))
+        data["ash_corr"] = corr
+        fair = self.ASH_FIXED_FAIR + corr
+
         # ── Track mid prices (for rolling variance) ───────────────────────
         mids: List[float] = data.get("m", [])
         mids.append(mid)
@@ -165,10 +178,21 @@ class Trader:
 
         tau = max(1.0 - timestamp / T_MAX, self.TAU_MIN)
 
+        # Residual z-score around fixed+adaptive fair for mean-reversion edge
+        residual = mid - fair
+        res_hist: List[float] = data.get("ash_res", [])
+        res_hist.append(residual)
+        res_hist = res_hist[-self.ASH_Z_WIN:]
+        data["ash_res"] = res_hist
+        res_std = max(float(np.std(res_hist)), self.ASH_Z_EPS) if len(res_hist) >= 6 else 1.0
+        resid_z = residual / res_std
+
         # ── A-S reservation price ─────────────────────────────────────────
         # r = s − q·γ·σ²·τ   (inventory penalty pushes toward flat)
         q = position
-        reservation = mid - q * gamma * sigma2 * tau
+        # Mean-reversion tilt: above fair (z>0) shift quotes lower, and vice versa.
+        mr_shift = max(-6.0, min(6.0, -0.8 * resid_z))
+        reservation = fair - q * gamma * sigma2 * tau + mr_shift
 
         # End-of-day: add τ-independent inventory unwind pressure
         if tau < self.EOD_TAU:
@@ -200,14 +224,14 @@ class Trader:
         if can_take:
             for ask_px, ask_vol in sell_orders:
                 vol = -ask_vol
-                if ask_px < mid - self.TAKE_EDGE and buy_cap > 0:
+                if ask_px < fair - self.TAKE_EDGE and residual < 0.0 and buy_cap > 0:
                     take = min(vol, buy_cap)
                     if take > 0:
                         orders.append(Order(ASH, ask_px, take))
                         buy_cap -= take
 
             for bid_px, bid_vol in buy_orders:
-                if bid_px > mid + self.TAKE_EDGE and sell_cap < 0:
+                if bid_px > fair + self.TAKE_EDGE and residual > 0.0 and sell_cap < 0:
                     take = min(bid_vol, -sell_cap)
                     if take > 0:
                         orders.append(Order(ASH, bid_px, -take))
@@ -226,6 +250,8 @@ class Trader:
         logger.log({
             "p": ASH, "ts": timestamp, "pos": position,
             "mid": round(mid, 2),
+            "fair": round(fair, 3), "corr": round(corr, 3),
+            "resid": round(residual, 3), "z": round(resid_z, 3),
             "p_hv": round(p_hv, 4),
             "worst": round(worst_var, 4), "base": round(baseline_var, 6),
             "rvar": round(rolling_var, 6), "sig2": round(sigma2, 6),
