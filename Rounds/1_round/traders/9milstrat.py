@@ -63,7 +63,7 @@ class Trader:
         lookback = 20  # Increased lookback to smooth out single-tick sweeps
         slope = 0.001
         n_offset = 20
-        intercept_initilisation = 8
+        intercept_initilisation = 15
         MAX_VAR = 2.0  # Cap the variance to prevent 4000+ tick jumps in r
 
         ts = np.array([p[0] for p in price_series], dtype=float) if price_series else np.array([])
@@ -105,7 +105,7 @@ class Trader:
         else:
             var = 0.01
 
-        if len(prices) >= intercept_initilisation:
+        if len(prices) >= intercept_initilisation and  not intercept:
             intercepts = prices - slope * ts
             intercept = float(np.mean(intercepts))
         else:
