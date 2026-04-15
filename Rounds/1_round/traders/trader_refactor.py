@@ -248,7 +248,7 @@ class Trader:
                 intercepts = prices - (SLOPE * ts)
                 intercept = float(np.mean(intercepts))
             else:
-                # Still initializing the intercept buy up inventory to long
+                # Still initializing the intercept buy up inventory to long don't want to fill asks unless misprice
                 if sell_orders: orders.append(Order(PRODUCT_ID, best_ask + 2, -2))
                 if buy_orders: orders.append(Order(PRODUCT_ID, best_bid + 2, 15))
                 return EARLY_EXIT
