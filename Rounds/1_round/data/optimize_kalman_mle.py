@@ -35,9 +35,9 @@ DATA_DIR = Path(__file__).resolve().parent
 PRODUCT = "ASH_COATED_OSMIUM"
 
 # --- Keep in sync with kalman_fv.Trader Kalman constants ---
-BASELINE_KF_R_OBS = 1.0
+BASELINE_KF_R_OBS = 200
 BASELINE_KF_Q_LEVEL = 0.3
-BASELINE_KF_Q_DRIFT = 0.015
+BASELINE_KF_Q_DRIFT = 10**-6
 
 # Log-space bounds for L-BFGS-B (match optimize_mle)
 LOG_BOUNDS = (
