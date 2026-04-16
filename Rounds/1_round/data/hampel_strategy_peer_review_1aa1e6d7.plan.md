@@ -4,22 +4,22 @@ overview: A comprehensive peer review of the Hampel-Storm Fade strategy for ASH_
 todos:
   - id: fix-causal
     content: Switch Hampel filter to center=False (causal) and re-run all tests -- this is the highest priority fix
-    status: pending
+    status: completed
   - id: revalidate-ic
     content: Re-run IC, Edge, Ljung-Box, and alpha durability with causal Hampel residuals
-    status: pending
+    status: completed
   - id: spread-tax
     content: Add spread cost (2 ticks round-trip) to capacity analysis in Cell 8
-    status: pending
+    status: completed
   - id: entry-persist
     content: Add 2-tick contraction persistence requirement to Wait-and-Fade entry logic
-    status: pending
+    status: completed
   - id: grid-w
     content: Grid-search W in {9,11,13,15,17,21} on causal filter, using day -2 as holdout
-    status: pending
+    status: completed
   - id: adaptive-threshold
     content: Make n_sigma threshold adaptive using online MAD rather than fixed tick count
-    status: pending
+    status: completed
 isProject: false
 ---
 
@@ -204,4 +204,104 @@ The notebook does not check:
 3. Add spread-cost adjustment to capacity analysis
 4. Add entry persistence filter (2-tick contraction requirement)
 5. Grid-search W on causal filter using day -2 as holdout
+
+---
+
+## Conclusion: Causal Revalidation Results
+
+All six action items have been implemented in [osmium.ipynb](Rounds/1_round/data/osmium.ipynb) (cells 4-9) and executed. The results are definitive.
+
+### 1. What the Causal Fix Revealed
+
+The centered Hampel filter (`center=True`, W=17) used 8 future ticks in every fair value estimate. Switching to causal (`center=False`) eliminated this look-ahead. The impact:
+
+| Metric | Centered (old) | Causal (new) | Change |
+|--------|---------------|-------------|--------|
+| Raw edge @ threshold 4 | 7.43 ticks | 0.03 - 0.97 ticks | **-93% to -99%** |
+| IC (Spearman, all ticks) | -0.49 | -0.44 to -0.46 | Modest drop |
+| Ljung-Box p(10) | 0.96 / 0.48 / 0.59 | 0.57 / 0.45 / 0.71 | Still white noise |
+| Student-t nu | 2.12 (all days) | 1.72 - 1.99 | Heavier tails |
+| Storm rate | ~16% | ~18% | Slightly more storms |
+
+The centered filter's look-ahead was responsible for **over 90% of the reported edge**. The 7.4-tick conditional edge was almost entirely mechanical correlation, not exploitable alpha. The IC only dropped from -0.49 to -0.44 because directional prediction (sign of reversion) is genuinely correct -- but the magnitude of the predicted move collapsed.
+
+### 2. What Remains Statistically Valid
+
+Several structural findings survived the causal fix and are confirmed across all 3 days:
+
+**Storm clustering is real.** Runs test p=0.00 on all days. Storms (outliers) are temporally clustered, not random. This is a structural feature of how the bots operate -- not an artifact.
+
+**Mean reversion in residual increments is strong.** The variance ratio on `dResidual` (residual changes, not levels) is ~0.20 across all days. VR=0.20 indicates powerful mean reversion in how the residual evolves tick-to-tick. The old VR=1.006 on levels was misleading -- it tested the wrong thing.
+
+**The Hampel filter produces genuine white noise residuals.** Ljung-Box p > 0.45 on all days even with causal filtering. The filter correctly separates fair value from noise without look-ahead assistance.
+
+**The adaptive threshold is day-invariant.** Median adaptive threshold = 4.45 ticks on all 3 days, despite the per-day Markov analysis showing different regime structures. The MAD-based threshold self-calibrates.
+
+**Tail behavior is extreme.** Student-t nu = 1.72 - 1.99 (causal), even worse than the centered nu = 2.12. With nu < 2, the distribution has no finite variance. "Storms" are not just large moves -- they are drawn from a distribution where arbitrarily large moves have non-negligible probability.
+
+### 3. Why the Strategy Fails Economically
+
+The Hampel-Storm Fade, as originally designed, is a **taker strategy**: it crosses the spread to enter when a storm is detected. This is unviable because:
+
+**Edge < Spread on every combination tested.**
+
+| Day | Horizon | Raw Edge (ticks) | Spread Cost | Net Edge |
+|-----|---------|-----------------|-------------|----------|
+| -1 | 3 | 0.33 | 2.0 | **-1.68** |
+| -1 | 10 | 0.14 | 2.0 | **-1.86** |
+| -2 | 3 | 0.53 | 2.0 | **-1.47** |
+| -2 | 10 | 0.48 | 2.0 | **-1.52** |
+| 0 | 5 | 0.72 | 2.0 | **-1.28** |
+| 0 | 15 | 0.97 | 2.0 | **-1.03** |
+
+The best single observation (Day 0, H=15, edge_raw=0.97) still loses ~1 tick per trade after spread. Over 46 trades, this compounds to -38 ticks.
+
+**Grid search confirmed: no window saves the strategy.** Testing W in {9, 11, 13, 15, 17, 21} on training days (-1, 0):
+
+| W | Mean Net Edge (H=10) | Mean IC | Mean Trades |
+|---|---------------------|---------|-------------|
+| 21 | -1.75 | -0.435 | 40.5 |
+| 9 | -1.78 | -0.430 | 60.0 |
+| 13 | -1.84 | -0.437 | 63.5 |
+| 17 | -1.89 | -0.435 | 53.0 |
+| 15 | -1.93 | -0.435 | 60.0 |
+| 11 | -1.95 | -0.434 | 69.0 |
+
+Best W=21 on training, holdout (day -2) confirms: edge_raw=0.31, edge_net=-1.69. The IC is remarkably stable across all windows (~-0.43), confirming the directional signal is real but the magnitude is insufficient.
+
+**The persistence filter (2-tick contraction) works as designed** -- it reduces trade count from hundreds (1-tick trigger) to ~50-60 per day, correctly filtering out dead-cat bounces within continuing storms. But it cannot create edge where the underlying magnitude is too small.
+
+### 4. The Core Insight
+
+There is no contradiction between a strong IC (-0.44) and zero exploitable edge. The IC measures **directional accuracy** -- the Hampel residual correctly predicts which way the price will move ~72% of the time (at short horizons). But the **magnitude** of that correct prediction is ~0.3-0.5 ticks, while the cost of acting on it is 2 ticks.
+
+This is the classic microstructure result: **the market is efficient enough that the edge exists below the spread**. The bots that set the prices already incorporate mean-reversion at this timescale. What remains for a taker is the scraps below transaction costs.
+
+### 5. Three Paths Forward
+
+The Hampel filter and storm detection are not useless -- they need to be deployed differently:
+
+**Path A: Passive Market Making (do not cross the spread).**
+Use the Hampel fair value as the center for an Avellaneda-Stoikov style market maker. Post limit orders at `FV +/- half_spread`. The residual signal tilts the reservation price: when residual is positive (price above FV), shade the ask down to attract sells. When negative, shade the bid up. This way the signal improves fill quality without paying the spread.
+
+**Path B: Inventory Management Signal.**
+Do not use the signal for entry/exit decisions. Instead, use it as a risk overlay for an existing market-making strategy. When the adaptive threshold flags a storm (`|residual| > 4.45`), widen spreads or reduce quote size. When the persistence filter confirms contraction, resume normal quoting. This monetizes the storm-clustering finding without requiring a directional edge above the spread.
+
+**Path C: Reduce Effective Spread.**
+The 2-tick spread assumption is for full taker execution (market orders). If the strategy can post limit orders 1 tick inside the spread (improve the quote), the effective round-trip cost drops to ~1 tick. At W=21, the best raw edge is ~0.97 ticks (Day 0, H=15). With a 1-tick cost, this is marginally positive. However, fill probability on improved quotes is uncertain and would need separate validation against L1 volume data.
+
+### 6. Final Assessment
+
+| Component | Status | Evidence |
+|-----------|--------|----------|
+| Hampel filter as FV estimator | **Valid** | White noise residuals on causal filter, all days |
+| Storm detection via MAD threshold | **Valid** | 18% storm rate, adaptive threshold = 4.45, day-invariant |
+| Storm clustering | **Valid** | Runs test p=0.00, all days |
+| Directional prediction (IC) | **Valid** | IC = -0.44, consistent across days and windows |
+| Mean reversion in residual | **Valid** | VR(dResidual) = 0.20, all days |
+| Taker strategy ("Storm Fade") | **Rejected** | Net edge negative on all day/horizon/W combinations |
+| Entry persistence filter | **Functional** | Correctly reduces false entries, but cannot overcome spread deficit |
+| Adaptive threshold | **Functional** | Self-calibrates to 4.45 ticks; day-invariant despite different regime structures |
+
+**Bottom line**: The statistical foundation is sound. The Hampel filter, storm detection, and mean-reversion signal are all real and cross-day robust. The failure is purely economic -- the signal's magnitude is below the cost of execution as a taker. Redeploying the signal as a passive market-making tilt (Path A) or risk overlay (Path B) is the recommended next step.
 
