@@ -1,0 +1,4 @@
+[submodule "prosperity_rust_backtester"]
+	path = prosperity_rust_backtester
+	url = https://github.com/GeyzsoN/prosperity_rust_backtester
+	branch = main
