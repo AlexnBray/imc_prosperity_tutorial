@@ -211,7 +211,7 @@ class Trader:
         VARIANCE_SAMPLE_SIZE = 10
         gamma = 0.002
         k = 0.14
-        position_offset = 6
+        position_offset = 75
         MIN_SPREAD = 4
 
         # ── Fair Value Calculation ─────────────────────────────────────────
@@ -252,7 +252,7 @@ class Trader:
             else:
                 # Still initializing the intercept buy up inventory to long don't want to fill asks unless misprice
                 if sell_orders: orders.append(Order(PRODUCT_ID, best_ask + 2, -2))
-                if buy_orders: orders.append(Order(PRODUCT_ID, best_bid + 2, 15))
+                if buy_orders: orders.append(Order(PRODUCT_ID, best_bid + 4, 80))
                 return EARLY_EXIT
         
         s = intercept + SLOPE * (current_time + N_ORACLE * 100)

@@ -145,10 +145,8 @@ class Trader:
         buy_orders = sorted(order_depth.buy_orders.items(), reverse=True)
 
         # Constants
-
-        POSITION_LIMIT = 80
         gamma = 0.001
-        k_val = 0.07
+        k_val = 0.12
         T = 1
 
         if not kf_p or len(kf_p) != 4:
@@ -193,7 +191,6 @@ class Trader:
             var = 0.01
 
         s = kf_mu
-        gamma, k_val, T = 0.001, 0.07, 1
         r = s - (position * gamma * var * T)
         delta = (gamma * var * T + (2 / gamma * math.log(1 + (gamma / k_val))))
 
