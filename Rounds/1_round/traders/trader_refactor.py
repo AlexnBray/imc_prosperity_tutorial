@@ -287,7 +287,7 @@ class Trader:
             "r": round(r, 2) if not math.isnan(r) else None,
         }
 
-        return orders, price_history, intercept, signals
+        return orders, price_history, r, s, intercept, signals
 
     def trade_osmium(self, order_depth: OrderDepth, position: int):
         orders: List[Order] = []
