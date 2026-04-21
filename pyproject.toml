@@ -30,16 +30,3 @@ dependencies = [
     "typing>=3.10.0.0",
 ]
 
-[tool.uv.workspace]
-members = [
-    "log_visualiser",
-    "montecarlo_backtester/imc-prosperity-4/backtester",
-]
-
-[tool.uv.sources]
-prosperity4mcbt = { workspace = true, editable = true }
-
-[dependency-groups]
-dev = [
-    "prosperity4mcbt",
-]

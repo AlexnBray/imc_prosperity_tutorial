@@ -160,54 +160,6 @@ class Trader:
     OBI_RESERVATION_LEAN = 0.8
     LVL_IMB_RESERVATION_LEAN = 0.6
 
-    # Conservative PEPPER regime detector; default remains long-hold.
-    PEPPER_EWMA_FAST_ALPHA = 0.28
-    PEPPER_EWMA_SLOW_ALPHA = 0.06
-    PEPPER_EWMA_WARMUP = 30
-    PEPPER_DOWN_DIFF_THRESH = -0.9
-    PEPPER_UP_DIFF_THRESH = 0.8
-    PEPPER_DOWN_CONFIRM = 6
-    PEPPER_UP_CONFIRM = 8
-
-    def _update_pepper_regime(
-        self,
-        mid: float,
-        state_data: Dict[str, Any],
-    ) -> Tuple[str, float, Dict[str, Any]]:
-        fast = float(state_data.get("ewma_fast", mid))
-        slow = float(state_data.get("ewma_slow", mid))
-        ticks = int(state_data.get("ewma_ticks", 0)) + 1
-        down_streak = int(state_data.get("down_streak", 0))
-        up_streak = int(state_data.get("up_streak", 0))
-        regime = str(state_data.get("regime", "long_hold"))
-
-        fast = self.PEPPER_EWMA_FAST_ALPHA * mid + (1.0 - self.PEPPER_EWMA_FAST_ALPHA) * fast
-        slow = self.PEPPER_EWMA_SLOW_ALPHA * mid + (1.0 - self.PEPPER_EWMA_SLOW_ALPHA) * slow
-        ewma_diff = fast - slow
-
-        if ticks >= self.PEPPER_EWMA_WARMUP:
-            if ewma_diff <= self.PEPPER_DOWN_DIFF_THRESH:
-                down_streak += 1
-                up_streak = 0
-                if down_streak >= self.PEPPER_DOWN_CONFIRM:
-                    regime = "short"
-            elif ewma_diff >= self.PEPPER_UP_DIFF_THRESH:
-                up_streak += 1
-                down_streak = 0
-                if up_streak >= self.PEPPER_UP_CONFIRM:
-                    regime = "long_hold"
-            else:
-                down_streak = 0
-                up_streak = 0
-
-        state_data["ewma_fast"] = float(fast)
-        state_data["ewma_slow"] = float(slow)
-        state_data["ewma_ticks"] = int(ticks)
-        state_data["down_streak"] = int(down_streak)
-        state_data["up_streak"] = int(up_streak)
-        state_data["regime"] = regime
-        return regime, ewma_diff, state_data
-
     @staticmethod
     def _kalman_local_linear_tick(
         z: float,
@@ -298,85 +250,36 @@ class Trader:
             return 0.0
         return (bv - sv) / denom
 
-    @staticmethod
-    def _obi_bin_from_l1(obi_l1: float) -> str:
-        # Mirrors the bins used in the CSV analysis:
-        # [-1, -0.4] -> '--', (-0.4, -0.15] -> '-', (-0.15, 0.15] -> '0', (0.15, 0.4] -> '+', (0.4, 1] -> '++'
-        if obi_l1 <= -0.4:
-            return "--"
-        if obi_l1 <= -0.15:
-            return "-"
-        if obi_l1 <= 0.15:
-            return "0"
-        if obi_l1 <= 0.4:
-            return "+"
-        return "++"
-
     def _trade_pepper(
         self,
         order_depth: OrderDepth,
         position: int,
         timestamp: int,
-        state_data: Dict[str, Any],
-    ) -> Tuple[List[Order], Dict[str, Any], Dict[str, Any]]:
+    ) -> Tuple[List[Order], Dict[str, Any]]:
         orders: List[Order] = []
         sells, buys = self._sorted_books(order_depth)
         if not sells and not buys:
-            return orders, state_data, {"active": False}
-
-        if sells and buys:
-            mid = 0.5 * (sells[0][0] + buys[0][0])
-        elif sells:
-            mid = float(sells[0][0])
-        else:
-            mid = float(buys[0][0])
-
-        regime, ewma_diff, state_data = self._update_pepper_regime(mid, state_data)
-
-        # Regime break: sweep bids across all levels to rotate inventory to full short.
-        if regime == "short":
-            sell_need = self.PEPPER_LIMIT + position
-            sold = 0
-            if sell_need > 0:
-                for bid_price, bid_vol in buys:
-                    if sell_need <= 0:
-                        break
-                    take = min(abs(bid_vol), sell_need)
-                    if take > 0:
-                        orders.append(Order(self.PEPPER, int(bid_price), -int(take)))
-                        sell_need -= take
-                        sold += take
-            return orders, state_data, {
-                "active": True,
-                "regime": regime,
-                "ewma_diff": round(ewma_diff, 4),
-                "n_orders": len(orders),
-                "sell_swept": sold,
-                "ts": timestamp,
-            }
+            return orders, {"active": False}
 
         buy_cap = self.PEPPER_LIMIT - position
 
-        # Aggressively take L1 ask only until full.
+        # Aggressively take ALL ask levels to build max long ASAP.
+        # Pepper is a near-perfect linear trend (R^2=0.9999, slope=+1/1000 ticks).
+        # Every tick we're not max-long we lose expected value.
         if buy_cap > 0 and sells:
-            best_ask, best_ask_vol = sells[0]
-            take = min(abs(best_ask_vol), buy_cap)
-            if take > 0:
-                orders.append(Order(self.PEPPER, best_ask, take))
-                buy_cap -= take
+            for ask_price, ask_vol in sells:
+                take = min(abs(ask_vol), buy_cap)
+                if take > 0:
+                    orders.append(Order(self.PEPPER, ask_price, take))
+                    buy_cap -= take
+                if buy_cap <= 0:
+                    break
 
         # Passive fill for remaining capacity at top-of-book
         if buy_cap > 0 and buys:
             orders.append(Order(self.PEPPER, buys[0][0] + 1, buy_cap))
 
-        return orders, state_data, {
-            "active": True,
-            "regime": regime,
-            "ewma_diff": round(ewma_diff, 4),
-            "buy_cap": buy_cap,
-            "n_orders": len(orders),
-            "ts": timestamp,
-        }
+        return orders, {"active": True, "buy_cap": buy_cap, "n_orders": len(orders)}
 
     def _trade_osmium(
         self,
@@ -441,7 +344,6 @@ class Trader:
         level_imbalance = n_bids - n_asks
 
         obi_l1 = self._l1_obi(buys, sells)
-        obi_bin = self._obi_bin_from_l1(obi_l1)
 
         sell_signal_kf = kf_beta < -self.KF_DRIFT_EPS
         buy_signal_kf = kf_beta > self.KF_DRIFT_EPS
@@ -469,17 +371,12 @@ class Trader:
         # Small size (10 lots) to avoid starving the maker.
         # ================================================================
         if len(mids) >= 15 and abs(deviation) >= self.MR_EXTREME_THRESH:
-            # Rule A (CSV best): deviation sign + L1 OBI confirmation
-            # If mid is far BELOW fair (deviation negative), expect reversion UP:
-            # buy only when OBI indicates bid pressure (obi_bin == '++').
             if deviation <= -self.MR_EXTREME_THRESH and buy_cap > 0:
                 take_qty = min(self.MR_EXTREME_QTY, buy_cap, abs(best_ask_vol))
                 if take_qty > 0:
                     orders.append(Order(sym, best_ask, int(take_qty)))
                     buy_cap -= take_qty
                     taker_took += take_qty
-            # If mid is far ABOVE fair (deviation positive), expect reversion DOWN:
-            # sell only when OBI indicates ask pressure (obi_bin == '--').
             elif deviation >= self.MR_EXTREME_THRESH and sell_cap < 0:
                 take_qty = min(self.MR_EXTREME_QTY, abs(sell_cap), abs(best_bid_vol))
                 if take_qty > 0:
@@ -559,8 +456,6 @@ class Trader:
             "dev": round(deviation, 2),
             "bias": round(reservation_bias, 2),
             "taker": taker_took,
-            "obi_l1": round(obi_l1, 3),
-            "obi_bin": obi_bin,
         }
         return orders, state_data, signals
 
@@ -571,7 +466,6 @@ class Trader:
             data = {}
 
         data.setdefault("osmium", {})
-        data.setdefault("pepper", {})
         result: Dict[Symbol, List[Order]] = {}
         signals: Dict[str, Any] = {}
 
@@ -589,11 +483,8 @@ class Trader:
 
         if self.PEPPER in state.order_depths:
             pos = state.position.get(self.PEPPER, 0)
-            orders, new_state, sig = self._trade_pepper(
-                state.order_depths[self.PEPPER], pos, state.timestamp, data["pepper"]
-            )
+            orders, sig = self._trade_pepper(state.order_depths[self.PEPPER], pos, state.timestamp)
             result[self.PEPPER] = orders
-            data["pepper"] = new_state
             signals["PEPPER"] = sig
 
         conversions = 0

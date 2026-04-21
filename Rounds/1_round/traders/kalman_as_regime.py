@@ -1,14 +1,17 @@
 """
-Kalman–OU Avellaneda-Stoikov Market Maker for ASH_COATED_OSMIUM.
+Kalman–OU–Regime Avellaneda-Stoikov Market Maker for ASH_COATED_OSMIUM.
 
-Architecture (simplified):
-  Layer 1 — Kalman Fair Value: Local linear trend filter -> mu(t), beta(t)
-  Layer 2 — OU Residual:      r(t) = mid - mu(t); online theta, sigma estimation
-  Layer 3 — A-S Quoting:      inventory-aware reservation price and spread
+Architecture (4 layers, each feeds the next):
+  Layer 1 — Kalman Fair Value:  Local linear trend filter → μ(t), β(t)
+  Layer 2 — OU Residual:        r(t) = mid − μ(t); online θ, σ_ou estimation
+  Layer 3 — Vol Regime:          max(Δp²) over short window vs slow baseline
+  Layer 4 — A-S Quoting:        Regime-scaled reservation price + optimal spread
 
-Notes:
-  - No volatility regime switch.
-  - No tau term (Prosperity simplification).
+Data-driven design choices (from Markov switching on historical data):
+  - No directional regimes  (both regime means ≈ 0, p > 0.5)
+  - Strong volatility regimes (σ²_high / σ²_low ≈ 37×)
+  - Regimes are short-lived  (~3-6 ticks) → EWMA is too slow; use raw spike detection
+  - Mean-reversion target is Kalman FV, not fixed 10 000
 """
 import math
 import json
@@ -18,6 +21,7 @@ from datamodel import OrderDepth, TradingState, Order, Symbol
 
 PRODUCT = "ASH_COATED_OSMIUM"
 POSITION_LIMIT = 80
+T_MAX = 999_900
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -43,8 +47,8 @@ logger = Logger()
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 class Trader:
     # ── Layer 1: Kalman filter (local linear trend) ───────────────────────
-    KF_R_OBS = 0.75
-    KF_Q_LEVEL = 0.5
+    KF_R_OBS = 1.0
+    KF_Q_LEVEL = 0.3
     KF_Q_DRIFT = 0.015
     KF_INIT_P_LEVEL = 25.0
     KF_INIT_P_DRIFT = 4.0
@@ -55,18 +59,33 @@ class Trader:
     OU_MR_PULL = 0.015
     OU_MR_CLIP = 5.0
 
-    # ── Layer 3: Avellaneda-Stoikov quoting ───────────────────────────────
-    VAR_WINDOW = 12               # tutorial lookback
-    MIN_VAR_OBS = 12              # wait for full lookback
-    GAMMA_BASE = 0.07             # tutorial gamma
-    K_ARRIVAL = 0.18              # tutorial k
-    T_HORIZON = 1.0               # tutorial T
-    MIN_SPREAD = 4                # tutorial floor
+    # ── Layer 3: Reactive volatility regime ───────────────────────────────
+    # Slow EWMA for "normal" baseline variance of Δmid²
+    BASELINE_ALPHA = 0.025        # half-life ≈ 27 ticks
+    # Short window of raw Δmid² — max over this window is the "current" vol
+    SPIKE_WINDOW = 3              # ticks to retain (matches ~3-6 tick regime duration)
+    # Linear ramp thresholds: p_hv goes 0 → 1 as worst/baseline goes THRESH → CEIL
+    SPIKE_THRESH = 4.0            # ratio to start reacting
+    SPIKE_CEIL = 10.0             # ratio for full high-vol
+
+    # ── Layer 4: Avellaneda-Stoikov quoting ───────────────────────────────
+    GAMMA_BASE = 0.07
+    GAMMA_HIGH_MULT = 2.5         # γ multiplier at p_hv=1
+    K_ARRIVAL = 0.35
+    TAU_MIN = 0.005
+    MIN_SPREAD = 2
+    POS_LIMIT_HIGH_VOL = 40
+    INV_ASYM_K = 0.30
+    # End-of-day inventory urgency (A-S reservation goes flat as τ→0, so
+    # we add a τ-independent penalty to actually unwind near close)
+    EOD_TAU = 0.10                # last 10% of the day
+    EOD_INV_PEN = 3.0             # max ticks of reservation shift at close
 
     # ── Tactical taking ──────────────────────────────────────────────────
     DRIFT_EPS = 0.04
     TAKE_EDGE = 1.5
     TAKE_MAX_EXT = 1.25
+    TAKE_REGIME_GATE = 0.5        # disable taking when p_hv exceeds this
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     # Layer 1 — Kalman filter tick (pure scalar, no matrix ops)
@@ -116,6 +135,26 @@ class Trader:
         sigma = max(float(np.std(y - phi * x)), 1e-6)
         return theta, sigma
 
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # Layer 3 — Reactive spike-based regime detection
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    @staticmethod
+    def _ewma(prev, val, alpha):
+        return val if prev is None else alpha * val + (1.0 - alpha) * prev
+
+    @staticmethod
+    def _spike_regime(worst_var, baseline_var, thresh, ceil):
+        """Linear ramp: 0 when ratio <= thresh, 1 when ratio >= ceil."""
+        if baseline_var < 1e-15:
+            return 0.0
+        ratio = worst_var / baseline_var
+        if ratio <= thresh:
+            return 0.0
+        if ratio >= ceil:
+            return 1.0
+        return (ratio - thresh) / (ceil - thresh)
+
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     @staticmethod
     def _safe_mid(sells, buys):
         if len(sells) >= 2 and len(buys) >= 2:
@@ -170,36 +209,63 @@ class Trader:
             ou_theta, ou_sigma = 0.0, 1.0
         half_life = math.log(2) / ou_theta if ou_theta > 1e-6 else float("inf")
 
-        # ── Layer 3: A-S quoting inputs (no regime, no tau) ───────────────
-        mids: List[float] = data.get("m", [])
-        mids.append(mid)
-        mids = mids[-(self.VAR_WINDOW + 1):]
-        data["m"] = mids
-        if len(mids) >= self.MIN_VAR_OBS + 1:
-            sigma2 = max(float(np.var(np.diff(mids))), 1e-6)
+        # ── Layer 3: Reactive volatility regime ───────────────────────────
+        last_mid = data.get("lm")
+        recent_dp2: List[float] = data.get("rdp", [])
+        if last_mid is not None:
+            dp2 = (mid - last_mid) ** 2
+            baseline_var = self._ewma(data.get("bv"), dp2, self.BASELINE_ALPHA)
+            recent_dp2.append(dp2)
+            recent_dp2 = recent_dp2[-self.SPIKE_WINDOW:]
         else:
-            return orders
+            baseline_var = data.get("bv", 1.0)
+        data["bv"] = baseline_var
+        data["rdp"] = recent_dp2
+        data["lm"] = mid
 
-        gamma = self.GAMMA_BASE
-        pos_limit = POSITION_LIMIT
+        worst_var = max(recent_dp2) if recent_dp2 else baseline_var
+        p_hv = self._spike_regime(
+            worst_var, baseline_var, self.SPIKE_THRESH, self.SPIKE_CEIL,
+        )
+
+        # ── Layer 4: Avellaneda-Stoikov quoting ───────────────────────────
+
+        tau = max(1.0 - timestamp / T_MAX, self.TAU_MIN)
+
+        # Regime-blended risk aversion
+        gamma = self.GAMMA_BASE * (1.0 + (self.GAMMA_HIGH_MULT - 1.0) * p_hv)
+
+        # Regime-blended variance: interpolate between baseline and spike
+        sigma2 = max((1.0 - p_hv) * baseline_var + p_hv * worst_var, 1e-6)
+
+        # Regime-scaled position limit
+        pos_limit = POSITION_LIMIT - (POSITION_LIMIT - self.POS_LIMIT_HIGH_VOL) * p_hv
 
         # OU-adjusted fair value: lean reservation back toward μ(t)
         ou_pull = self.OU_MR_PULL * residual
         ou_pull = max(-self.OU_MR_CLIP, min(self.OU_MR_CLIP, ou_pull))
         s = fv - ou_pull
 
-        # Tutorial A-S reservation: r = s - q*gamma*sigma2*T
+        # A-S reservation price:  r = s − q·γ·σ²·τ
         q = position
-        reservation = s - q * gamma * sigma2 * self.T_HORIZON
+        reservation = s - q * gamma * sigma2 * tau
 
-        # Tutorial A-S spread: delta = gamma*sigma2*T + (2/gamma)*ln(1 + gamma/k)
-        spread = (gamma * sigma2 * self.T_HORIZON
+        # End-of-day inventory urgency: A-S reservation penalty vanishes as
+        # τ→0, so add a τ-independent term that actively unwinds near close
+        if tau < self.EOD_TAU:
+            urgency = (self.EOD_TAU - tau) / self.EOD_TAU  # 0→1 as day ends
+            eod_shift = self.EOD_INV_PEN * urgency * q / POSITION_LIMIT
+            reservation -= eod_shift
+
+        # A-S optimal spread:  δ = γσ²τ + (2/γ)·ln(1 + γ/κ)
+        spread = (gamma * sigma2 * tau
                   + (2.0 / gamma) * math.log(1.0 + gamma / self.K_ARRIVAL))
         spread = max(spread, float(self.MIN_SPREAD))
 
-        # Tutorial-style symmetric half-spreads
-        half_bid = spread / 2.0
-        half_ask = spread / 2.0
+        # Asymmetric half-spreads: widen the side that adds inventory risk
+        qn = q / max(pos_limit, 1)
+        half_bid = (spread / 2.0) * (1.0 + self.INV_ASYM_K * max(0.0, qn))
+        half_ask = (spread / 2.0) * (1.0 + self.INV_ASYM_K * max(0.0, -qn))
 
         as_bid = math.floor(reservation - half_bid)
         as_ask = math.ceil(reservation + half_ask)
@@ -207,11 +273,12 @@ class Trader:
         buy_cap = int(pos_limit) - position
         sell_cap = -int(pos_limit) - position
 
-        # ── Tactical taking (drift-gated) ─────────────────────────────────
+        # ── Tactical taking (drift-gated, regime-gated) ──────────────────
         buy_signal = beta > self.DRIFT_EPS
         sell_signal = beta < -self.DRIFT_EPS
-        allow_buy = buy_signal and residual <= self.TAKE_MAX_EXT
-        allow_sell = sell_signal and residual >= -self.TAKE_MAX_EXT
+        regime_safe = p_hv < self.TAKE_REGIME_GATE
+        allow_buy = buy_signal and regime_safe and residual <= self.TAKE_MAX_EXT
+        allow_sell = sell_signal and regime_safe and residual >= -self.TAKE_MAX_EXT
 
         for ask_px, ask_vol in sell_orders:
             vol = -ask_vol
@@ -244,7 +311,10 @@ class Trader:
             "fv": round(fv, 4), "beta": round(beta, 6),
             "ou_th": round(ou_theta, 6), "ou_sig": round(ou_sigma, 4),
             "hl": round(half_life, 2) if half_life < 1e6 else "inf",
+            "p_hv": round(p_hv, 4),
+            "worst_v": round(worst_var, 4), "base_v": round(baseline_var, 6),
             "gamma": round(gamma, 6), "sig2": round(sigma2, 6),
+            "tau": round(tau, 4),
             "res": round(reservation, 4), "sprd": round(spread, 4),
             "bid": as_bid, "ask": as_ask,
             "plim": round(pos_limit, 1),

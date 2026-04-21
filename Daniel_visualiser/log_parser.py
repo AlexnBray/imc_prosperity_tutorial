@@ -16,66 +16,6 @@ def parse_prosperity_log(file_path: str) -> pd.DataFrame:
     for log_entry in data.get('logs', []):
         lambda_log = log_entry.get('lambdaLog', '')
         for line in lambda_log.split('\n'):
-            line = line.strip()
-            if not line:
-                continue
-
-            # New logger format: compressed JSON array printed by logger.flush
-            # payload shape:
-            # [compressed_state, compressed_orders, conversions, trader_data, logs]
-            # compressed_state shape:
-            # [timestamp, traderData, listings, order_depths, own_trades, market_trades, position]
-            if line.startswith('['):
-                try:
-                    payload = json.loads(line)
-                    if (
-                        isinstance(payload, list)
-                        and len(payload) >= 2
-                        and isinstance(payload[0], list)
-                        and isinstance(payload[1], list)
-                    ):
-                        state_comp = payload[0]
-                        orders_comp = payload[1]
-                        ts = int(state_comp[0]) if len(state_comp) > 0 else None
-                        if ts is None:
-                            continue
-
-                        # Aggregate algo quotes from compressed orders
-                        by_product = {}
-                        for o in orders_comp:
-                            if not isinstance(o, list) or len(o) < 3:
-                                continue
-                            product, px, qty = o[0], float(o[1]), int(o[2])
-                            if product not in by_product:
-                                by_product[product] = {"bids": {}, "asks": {}}
-                            side_map = by_product[product]["bids"] if qty > 0 else by_product[product]["asks"]
-                            side_map[px] = side_map.get(px, 0) + abs(qty)
-
-                        for product, book in by_product.items():
-                            rec = {
-                                "timestamp": ts,
-                                "product": product,
-                                # Keep these columns for existing visualizer traces
-                                "fv": np.nan,
-                                "effective_fv": np.nan,
-                                "secondary_fv": np.nan,
-                            }
-                            bid_levels = sorted(book["bids"].items(), key=lambda x: x[0], reverse=True)[:3]
-                            ask_levels = sorted(book["asks"].items(), key=lambda x: x[0])[:3]
-                            for i in range(3):
-                                if i < len(bid_levels):
-                                    rec[f"algo_bid_price_{i+1}"] = float(bid_levels[i][0])
-                                    rec[f"algo_bid_volume_{i+1}"] = float(bid_levels[i][1])
-                                if i < len(ask_levels):
-                                    rec[f"algo_ask_price_{i+1}"] = float(ask_levels[i][0])
-                                    rec[f"algo_ask_volume_{i+1}"] = float(ask_levels[i][1])
-                            algo_records.append(rec)
-                        continue
-                except Exception:
-                    # Not a parseable compressed payload; fall through to old format.
-                    pass
-
-            # Old logger format: [ALGO],timestamp,product,position,fv,effective_fv,secondary_fv,[bids],[asks]
             if line.startswith('[ALGO]'):
                 parts = line.split(',')
                 if len(parts) >= 7:

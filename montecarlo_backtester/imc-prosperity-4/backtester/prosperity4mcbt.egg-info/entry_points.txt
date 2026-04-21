@@ -1,3 +1,0 @@
-[console_scripts]
-prosperity3bt = prosperity3bt.__main__:main
-prosperity4mcbt = prosperity4mcbt.__main__:main
