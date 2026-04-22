@@ -285,7 +285,7 @@ class Trader:
             "r": round(r, 2) if not math.isnan(r) else None,
         }
 
-        return orders, price_history, r, s, intercept, signals
+        return orders, price_history, signals, intercept
 
     def trade_osmium(self, order_depth: OrderDepth, position: int):
         orders: List[Order] = []
@@ -312,7 +312,7 @@ class Trader:
             position = state.position.get(product, 0)
 
             if product == "INTARIAN_PEPPER_ROOT":
-                orders, history, signals = self.trade_pepper_root(
+                orders, history, signals, intercept = self.trade_pepper_root(
                     order_depth, 
                     position, 
                     data["pepper_history"], 
