@@ -205,20 +205,20 @@ class Trader:
         SLOPE = 0.001 # Slope of linear fair value function
 
         orders: List[Order] = []
-        EARLY_EXIT = orders, price_history, np.nan, np.nan, np.nan
+        EARLY_EXIT = orders, price_history, None, None, stored_intercept
 
         # ── A-S Model Params ───────────────────────────────────────────────
         VARIANCE_SAMPLE_SIZE = 10
         gamma = 0.002
         k = 0.14
-        position_offset = 75
+        position_offset = 6
         MIN_SPREAD = 4
 
         # ── Fair Value Calculation ─────────────────────────────────────────
         sell_orders, buy_orders = self.get_sell_and_buy_orders(order_depth)
         best_bid, best_ask = self.get_best_bid_and_ask(buy_orders, sell_orders)
 
-        if not price_history and not (best_bid or best_ask):
+        if not price_history and best_bid is None and best_ask is None:
             return EARLY_EXIT  # truly dead tick, nothing we can do
 
         if not price_history:
@@ -243,16 +243,16 @@ class Trader:
         prices = np.array(prices)
 
         intercept = stored_intercept
-        if intercept is None:
+        if intercept is None or not np.isfinite(float(intercept)):
             if len(prices) >= INTERCEPT_INITILISATION_TICKS:
                 # Linear regression logic: price = slope * time + intercept
                 
                 intercepts = prices - (SLOPE * ts)
                 intercept = float(np.mean(intercepts))
             else:
-                # Still initializing the intercept buy up inventory to long don't want to fill asks unless misprice
+                # Still initializing the intercept buy up inventory to long
                 if sell_orders: orders.append(Order(PRODUCT_ID, best_ask + 2, -2))
-                if buy_orders: orders.append(Order(PRODUCT_ID, best_bid + 4, 80))
+                if buy_orders: orders.append(Order(PRODUCT_ID, best_bid + 2, 15))
                 return EARLY_EXIT
         
         s = intercept + SLOPE * (current_time + N_ORACLE * 100)
@@ -277,9 +277,9 @@ class Trader:
         buy_cap = POSITION_LIMIT - position
         sell_cap = -POSITION_LIMIT - position
 
-        if buy_cap > 0:
+        if buy_cap > 0 and np.isfinite(bid_price):
             orders.append(Order(PRODUCT_ID, int(bid_price), buy_cap))
-        if sell_cap < 0:
+        if sell_cap < 0 and np.isfinite(ask_price):
             orders.append(Order(PRODUCT_ID, int(ask_price), sell_cap))
         
         signals = {
@@ -287,7 +287,7 @@ class Trader:
             "r": round(r, 2) if not math.isnan(r) else None,
         }
 
-        return orders, price_history, intercept, signals
+        return orders, price_history, r, s, intercept, signals
 
     def trade_osmium(self, order_depth: OrderDepth, position: int):
         orders: List[Order] = []
@@ -295,9 +295,15 @@ class Trader:
 
     def run(self, state: TradingState) -> tuple[dict[Symbol, list[Order]], int, str]:
         if state.traderData:
-            data = json.loads(state.traderData)
+            try:
+                data = json.loads(state.traderData)
+            except Exception:
+                data = {}
         else:
-            data = {"pepper_history": [], "pepper_intercept": None}
+            data = {
+                "pepper_history": [], 
+                "pepper_intercept": None
+            }
 
         result = {}
         all_signals = {} # Collect signals for all products here
@@ -317,8 +323,7 @@ class Trader:
                 )
                 result[product] = orders
                 data["pepper_history"] = history
-
-                all_signals[product] = signals 
+                data["pepper_intercept"] = intercept
 
         trader_data = json.dumps(data)
         
