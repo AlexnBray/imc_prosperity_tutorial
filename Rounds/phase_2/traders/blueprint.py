@@ -11,6 +11,7 @@ from datamodel import Listing, Order, OrderDepth, ProsperityEncoder, Symbol, Tra
 #|||||||||||||||||||GENERAL CONSTANTS||||||||||||||||||#
 
 MEAN_REVERT = "ASH_COATED_OSMIUM"
+PEPPER = "INTARIAN_PEPPER_ROOT"
 
 OPTIONS_SYMBOLS =[
     'penis1',
@@ -21,7 +22,8 @@ OPTION_UNDERLYING_SYMBOL = "OPTION"
 
 POS_LIMITS = {
     MEAN_REVERT: 80,
-    OPTION_UNDERLYING_SYMBOL: 0
+    OPTION_UNDERLYING_SYMBOL: 0,
+    PEPPER: 80
     }
 
 
@@ -297,6 +299,16 @@ class TraderBase:
 class PepperTrader(TraderBase):
     def __init__(self, name, state, prints, new_trader_data):
         super().__init__(name, state, prints, new_trader_data)
+        
+    def get_orders(self):
+        for ask_price, ask_vol in self.mkt_sell_orders.items():
+            if self.max_allowed_buy_volume <= 0:
+                break
+            self.bid(ask_price, ask_vol)
+
+        
+        return {self.name: self.orders}
+
 
 class OsmiumTrader(TraderBase):
     def __init__(self, name, state, prints, new_trader_data):
@@ -314,8 +326,7 @@ class OptionsTrader:
     def get_orders(self):
         
         orders = {
-            
-
+        
         }
 
 class Trader:
@@ -326,14 +337,13 @@ class Trader:
         conversions = 0 # Not used for Prosperity 4, but still required as a return
         
         product_traders = {
-            OPTION_UNDERLYING_SYMBOL: OptionsTrader
+            PEPPER: PepperTrader
         }
 
         for symbol, product_trader in product_traders.items(): # Goes through the currently traded items and gets their current order response
             if symbol in state.order_depths: # Ensures the item traded is in order book
-
                 try:
-                    trades, signals = product_trader(state, new_trader_data) # Creates a new instance of the class, to store in trader
+                    trades, signals = product_trader(symbol, state, new_trader_data) # Creates a new instance of the class, to store in trader
                     all_signals[symbol] = signals
                     result.update(trades.get_orders()) # Returns a dictionary, updates the dictionary while removing duplicates (.update similar to .extend for lists)
 
