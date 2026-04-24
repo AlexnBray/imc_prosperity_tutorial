@@ -297,8 +297,8 @@ class TraderBase:
         self.orders.append(order)
 
 class PepperTrader(TraderBase):
-    def __init__(self, name, state, prints, new_trader_data):
-        super().__init__(name, state, prints, new_trader_data)
+    def __init__(self, name, state, new_trader_data):
+        super().__init__(name, state, new_trader_data)
         
     def get_orders(self):
         for ask_price, ask_vol in self.mkt_sell_orders.items():
@@ -307,7 +307,7 @@ class PepperTrader(TraderBase):
             self.bid(ask_price, ask_vol)
 
         
-        return {self.name: self.orders}
+        return {self.name: self.orders}, {}
 
 
 class OsmiumTrader(TraderBase):
@@ -343,10 +343,10 @@ class Trader:
         for symbol, product_trader in product_traders.items(): # Goes through the currently traded items and gets their current order response
             if symbol in state.order_depths: # Ensures the item traded is in order book
                 try:
-                    trades, signals = product_trader(symbol, state, new_trader_data) # Creates a new instance of the class, to store in trader
+                    trades = product_trader(symbol, state, new_trader_data) # Creates a new instance of the class, to store in trader
+                    orders, signals = trades.get_orders()
+                    result.update(orders) # Returns a dictionary, updates the dictionary while removing duplicates (.update similar to .extend for lists)
                     all_signals[symbol] = signals
-                    result.update(trades.get_orders()) # Returns a dictionary, updates the dictionary while removing duplicates (.update similar to .extend for lists)
-
                 except: # Safekeeping
                     pass
 
