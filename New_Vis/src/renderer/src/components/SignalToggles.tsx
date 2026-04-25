@@ -7,8 +7,22 @@ interface Props {
 
 const AXES = ['y', 'y2', 'y3'] as const;
 
+const DEFAULT_SIGNAL_COLORS: Record<string, string> = {
+  mid_price: '#64748b',
+  fv: '#ffffff',
+  effective_fv: '#ff00d4',
+  secondary_fv: '#00ccff',
+  bid_price_1: '#94a3b8',
+  ask_price_1: '#94a3b8',
+  algo_bid_price_1: '#059669',
+  algo_ask_price_1: '#dc2626',
+};
+
 export function SignalToggles({ log }: Props) {
-  const { visibleSignals, axisAssignments, toggleSignal, setAxis } = useApp();
+  const { visibleSignals, axisAssignments, prefs, toggleSignal, setAxis, setSignalColor } = useApp();
+  const userColors = prefs?.signalColors ?? {};
+
+  const getColor = (key: string) => userColors[key] ?? DEFAULT_SIGNAL_COLORS[key] ?? '#94a3b8';
 
   const all = [
     'mid_price',
@@ -36,8 +50,25 @@ export function SignalToggles({ log }: Props) {
           {keys.map((k) => {
             const isVisible = visibleSignals.has(k);
             const axis = axisAssignments[k] ?? 'y';
+            const color = getColor(k);
             return (
-              <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+              <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 4 }}>
+                <input
+                  type="color"
+                  value={color}
+                  onChange={(e) => setSignalColor(k, e.target.value)}
+                  title={`Color for ${k}`}
+                  style={{
+                    width: 16,
+                    height: 16,
+                    padding: 0,
+                    border: 'none',
+                    borderRadius: 3,
+                    cursor: 'pointer',
+                    flexShrink: 0,
+                    background: 'none',
+                  }}
+                />
                 <button
                   onClick={() => toggleSignal(k)}
                   style={{
@@ -45,9 +76,9 @@ export function SignalToggles({ log }: Props) {
                     fontSize: 10,
                     padding: '2px 6px',
                     borderRadius: 4,
-                    border: '1px solid var(--border)',
-                    background: isVisible ? 'var(--accent)' : 'transparent',
-                    color: isVisible ? '#fff' : 'var(--text-muted)',
+                    border: `1px solid ${isVisible ? color : 'var(--border)'}`,
+                    background: isVisible ? color + '33' : 'transparent',
+                    color: isVisible ? 'var(--text)' : 'var(--text-muted)',
                     cursor: 'pointer',
                     textAlign: 'left',
                     fontFamily: 'monospace',

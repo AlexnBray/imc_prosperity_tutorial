@@ -24,7 +24,7 @@ function getSignalColor(name: string, userColors: Record<string, string>): strin
 export function PriceChart({ data, trades: _trades, isDark }: Props) {
   const rootRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<echarts.ECharts | null>(null);
-  const { prefs, visibleSignals } = useApp();
+  const { prefs, visibleSignals, setActiveTimestamp } = useApp();
   const [chartError, setChartError] = useState<string | null>(null);
   const [isReady, setIsReady] = useState(false);
 
@@ -139,6 +139,13 @@ export function PriceChart({ data, trades: _trades, isDark }: Props) {
         series,
       };
       chart.setOption(option, { notMerge: true, lazyUpdate: true });
+
+      chart.on('updateAxisPointer', (params: unknown) => {
+        const p = params as { axesInfo?: Array<{ value?: number }> };
+        const xVal = p?.axesInfo?.[0]?.value;
+        if (xVal !== undefined) setActiveTimestamp(xVal);
+      });
+      chart.on('mouseout', () => setActiveTimestamp(null));
 
       resizeObserver = new ResizeObserver(() => chart.resize());
       resizeObserver.observe(rootEl);

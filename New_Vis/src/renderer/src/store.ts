@@ -18,6 +18,7 @@ interface AppState {
   toggleSignal: (name: string) => void;
   setSignalVisible: (name: string, visible: boolean) => void;
   setAxis: (name: string, axis: 'y' | 'y2' | 'y3') => void;
+  setSignalColor: (name: string, color: string) => void;
   toggleMetric: (key: string) => void;
   setTheme: (t: 'dark' | 'light') => void;
 }
@@ -74,6 +75,15 @@ export const useApp = create<AppState>((set, get) => ({
       set({ prefs: merged });
       window.api.setPrefs({ axisAssignments: next });
     }
+  },
+
+  setSignalColor: (name, color) => {
+    const prefs = get().prefs;
+    if (!prefs) return;
+    const signalColors = { ...(prefs.signalColors ?? {}), [name]: color };
+    const merged = { ...prefs, signalColors };
+    set({ prefs: merged });
+    window.api.setPrefs({ signalColors });
   },
 
   toggleMetric: (key) => {
