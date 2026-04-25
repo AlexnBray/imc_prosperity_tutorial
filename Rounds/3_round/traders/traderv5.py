@@ -6,26 +6,29 @@ from typing import Any, List, Dict
 from datamodel import Listing, Order, OrderDepth, ProsperityEncoder, Symbol, Trade, TradingState
 from statistics import NormalDist
 
-OPTION_UNDERLYING_SYMBOL = "VELVETFRUIT_EXTRACT"
+VELVETFRUIT_EXTRACT = "VELVETFRUIT_EXTRACT"
 HYDROGEL_PACK = "HYDROGEL_PACK"
 
 POS_LIMITS = {
-    OPTION_UNDERLYING_SYMBOL: 200,
+    VELVETFRUIT_EXTRACT: 200,
     HYDROGEL_PACK: 200
     }
 
-##########COINTEGRATION / HYDRO MM CONSTANTS########################################################
-# OLS fit from round-3 data (HYDRO ~= alpha + beta * VELVET). Update from notebook when re-calibrated.
-COINT_BETA = 0.19762768551131238
-COINT_ALPHA = 8953.242130456325
+EWMMA_ALPHAS = {
+    HYDROGEL_PACK: 0.01,
+    VELVETFRUIT_EXTRACT: 0.01
+}
 
-# EWMA memory (in ticks): mean can adapt faster, variance smoother.
-SPREAD_MEAN_HALFLIFE_TICKS = 220.0
-SPREAD_VAR_HALFLIFE_TICKS = 350.0
+ROLLING_WINDOW_VAR = {
+    HYDROGEL_PACK: 50,
+    VELVETFRUIT_EXTRACT: 50
+}
 
-# Overlay hysteresis: enter on larger dislocations, exit only after partial mean reversion.
-Z_ENTER = 1.8
-Z_EXIT = 0.45
+MR_Z_THRESHOLD = {
+    HYDROGEL_PACK: 3.0,
+    VELVETFRUIT_EXTRACT: 3.0,
+}
+
 
 class Logger:
     def __init__(self) -> None:
@@ -295,109 +298,64 @@ class TraderBase:
         order = Order(self.name, int(price), -abs_volume)
         self.max_allowed_sell_volume -= abs_volume
         self.orders.append(order)
+
+class MRTrader(TraderBase):
+    def __init__(self, name, state, new_trader_data):
+        super().__init__(name, state, new_trader_data)
+        self.history_key = f"{self.name}_h"
+        self.history  = self.last_traderData.get(self.history_key, [])
+        self.alpha = EWMMA_ALPHAS.get(self.name, 0.01)
+        self.window = ROLLING_WINDOW_VAR.get(self.name, 100)
+        self.z_threshold = MR_Z_THRESHOLD.get(self.name, 2.0)
     
-    @staticmethod
-    def _alpha_from_halflife(half_life_ticks):
-        if half_life_ticks <= 1:
-            return 1.0
-        return 1.0 - math.exp(math.log(0.5) / half_life_ticks)
-    
-    @staticmethod
-    def _clamp(x: float, lo: float, hi: float) -> float:
-        return max(lo, min(hi, x))
-
-
-class HydrogelPack:
-    def __init__(self,state,new_trader_data):
-        self.state = state
-        self.new_trader_data = new_trader_data
-
-        self.hydrogel = TraderBase(HYDROGEL_PACK, state, new_trader_data)
-        self.velvetfruit = TraderBase(OPTION_UNDERLYING_SYMBOL, state, new_trader_data)
-        # Short aliases used throughout the strategy body.
-        self.h = self.hydrogel
-        self.v = self.velvetfruit
-        
-        try:
-            self.last_td = self.h.last_traderData
-        except Exception:
-            self.last_td = {}
-
-    def _ewma(self, key:str, alpha:float, value:float) -> float:
-
-        prev = float(self.last_td.get(key,value))
-        nxt = alpha * value + (1.0 -alpha ) * prev
-        self.new_trader_data[key] = nxt
-
+    def ewma(self, value:float):
+        prev = float(self.last_traderData.get(self.name, value))
+        nxt = self.alpha * value + (1.0 -self.alpha ) * prev
+        self.new_trader_data[self.name] = nxt
         return nxt
-  
-    def _calc_spread(self, hydro_mid, velvet_mid):
-        return hydro_mid - (COINT_ALPHA + COINT_BETA *velvet_mid)
 
-    # Keep naming compatible with call-sites below.
-    def _compute_spread(self, hydro_mid, velvet_mid):
-        return self._calc_spread(hydro_mid, velvet_mid)
-
-    def _compute_z(self, spread): 
-        a_m = TraderBase._alpha_from_halflife(SPREAD_MEAN_HALFLIFE_TICKS) # slow alpha, mean should remain stable
-        a_v = TraderBase._alpha_from_halflife(SPREAD_VAR_HALFLIFE_TICKS) #faster alpha, varaince needs to adapt
-
-        mu = self._ewma("hydro_mu", a_m, spread) # rolling mean of spread
-
-        dev = spread - mu
-        var = self._ewma("hydro_var", a_v, dev * dev)
-        st = math.sqrt(max(1e-9, var)) # guard against negative/zero variance to avoid erros
-        z = (spread - mu) / st
-        return z,  mu, st
-
-    def _coint_overlay(self, z):
-
-        prev = bool(self.last_td.get("hydro_coint_on", False))
-        now = prev
-
-        if not prev and abs(z) >= Z_ENTER:
-            now = True
-        if prev and abs(z) <= Z_EXIT:
-            now = False
+    def _calc_var(self, value: float):
         
-        self.new_trader_data['hydro_coint_on'] = now
-        return now
+        self.history.append(value)
+        self.history = self.history[-(self.window + 1):]
 
-    # Keep naming compatible with call-sites below.
-    def _overlay_active(self, z):
-        return self._coint_overlay(z)
+        if len(self.history) > 2: # Need at least 3 prices to get 2 returns for ddof=1
+            values = np.array(self.history)
+            var = np.var(values, ddof=1)
+            
+            # Safety check: if variance is 0 or NaN, use a tiny default to avoid math errors
+            if np.isnan(var) or var == 0:
+                var = 1e-8 
+        else:
+            var = 1e-8 # Default small variance for the first few ticks
+        
+        self.new_trader_data[self.history_key] = list(self.history)
+        return var
+    
+    def _compute_z(self, value: float, mean: float): 
+        var = self._calc_var(value - mean)
+        st = math.sqrt(max(1e-9, var)) # guard against negative/zero variance to avoid erros
+        z = (value - mean) / st
+        return z
 
     def get_orders(self):
-        # 1. Validation: Ensure we have data for both legs
-        if self.h.wall_mid is None or self.v.wall_mid is None:
-            return {}
 
-        # 2. Signal Generation
-        hydro_mid = float(self.h.wall_mid)
-        velvet_mid = float(self.v.wall_mid)
-        spread = self._compute_spread(hydro_mid, velvet_mid)
-        z, _, st = self._compute_z(spread)
+        if self.wall_mid is None:
+            return {self.name: self.orders}
         
-        # Overlay determines if we are currently in an active trade signal
-        overlay_on = self._overlay_active(z)
-
-        # 3. Execution Logic (Pure Taker)
-        # We only trade if the signal is active (overlay_on)
-        if overlay_on:
-            # SPREAD IS TOO HIGH (Z > 0): Short Hydrogel by hitting the Best Bid
+        self.mean = self.ewma(self.wall_mid)
+        z = self._compute_z(self.wall_mid, self.mean)
+        
+        if abs(z) > self.z_threshold:
             if z > 0:
-                quantity = self.h.max_allowed_sell_volume
-                if quantity > 0:
-                    # Selling at the best bid price ensures an immediate fill
-                    self.h.ask(self.h.best_bid, quantity)
-            
-            # SPREAD IS TOO LOW (Z < 0): Long Hydrogel by hitting the Best Ask
-            elif z < 0:
-                quantity = self.h.max_allowed_buy_volume
-                if quantity > 0:
-                    # Buying at the best ask price ensures an immediate fill
-                    self.h.bid(self.h.best_ask, quantity)
-        return {HYDROGEL_PACK: self.h.orders}
+                self.ask(self.best_bid, self.max_allowed_sell_volume)
+            else:  # z < 0
+                self.bid(self.best_ask, self.max_allowed_buy_volume)
+
+        return {self.name: self.orders}
+    
+    def debug(self):
+        return self.mean
 
 class Trader:
     def run(self,state:TradingState):
@@ -407,17 +365,18 @@ class Trader:
         conversions = 0 # Not used for Prosperity 4, but still required as a return
         
         product_traders = {
-            HYDROGEL_PACK: HydrogelPack,
+            HYDROGEL_PACK: MRTrader,
+            VELVETFRUIT_EXTRACT: MRTrader
         }
 
         for symbol, product_trader in product_traders.items(): # Goes through the currently traded items and gets their current order response
             if symbol in state.order_depths: # Ensures the item traded is in order book
                 try:
-                    trades = product_trader(state, new_trader_data) # Creates a new instance of the class, to store in trader
+                    trades = product_trader(symbol, state, new_trader_data) # Creates a new instance of the class, to store in trader
                     # IMC convention: strategy returns orders dict only; run() returns (orders, conversions, traderData).
                     orders = trades.get_orders()
                     result.update(orders) # Returns a dictionary, updates the dictionary while removing duplicates (.update similar to .extend for lists)
-                    all_signals[symbol] = {}
+                    all_signals[symbol] = trades.debug() # Get the signals from the trader for this product and store in all_signals to be passed to the logger at the end of the tick
                 except: # Safekeeping
                     logger.print(f"ERROR in trader for {symbol}")
 

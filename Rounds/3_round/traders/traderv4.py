@@ -19,13 +19,9 @@ POS_LIMITS = {
 COINT_BETA = 0.19762768551131238
 COINT_ALPHA = 8953.242130456325
 
-# EWMA memory (in ticks): mean can adapt faster, variance smoother.
-SPREAD_MEAN_HALFLIFE_TICKS = 220.0
-SPREAD_VAR_HALFLIFE_TICKS = 350.0
-
 # Overlay hysteresis: enter on larger dislocations, exit only after partial mean reversion.
-Z_ENTER = 1.8
-Z_EXIT = 0.45
+Z_ENTER = 2.3
+Z_EXIT = 1
 
 class Logger:
     def __init__(self) -> None:
@@ -296,40 +292,27 @@ class TraderBase:
         self.max_allowed_sell_volume -= abs_volume
         self.orders.append(order)
     
-    @staticmethod
-    def _alpha_from_halflife(half_life_ticks):
-        if half_life_ticks <= 1:
-            return 1.0
-        return 1.0 - math.exp(math.log(0.5) / half_life_ticks)
     
     @staticmethod
     def _clamp(x: float, lo: float, hi: float) -> float:
         return max(lo, min(hi, x))
 
-
-class HydrogelPack:
+class VelvetFruit:
     def __init__(self,state,new_trader_data):
         self.state = state
         self.new_trader_data = new_trader_data
 
-        self.hydrogel = TraderBase(HYDROGEL_PACK, state, new_trader_data)
-        self.velvetfruit = TraderBase(OPTION_UNDERLYING_SYMBOL, state, new_trader_data)
-        # Short aliases used throughout the strategy body.
-        self.h = self.hydrogel
-        self.v = self.velvetfruit
-        
+        self.h = TraderBase(HYDROGEL_PACK, state, new_trader_data)
+        self.v = TraderBase(OPTION_UNDERLYING_SYMBOL, state, new_trader_data)
+
+        self.h.history_key = f"{HYDROGEL_PACK}_history"
+        self.h.spread_history  = self.h.last_traderData.get(self.h.history_key, [])
+    
+
         try:
             self.last_td = self.h.last_traderData
         except Exception:
             self.last_td = {}
-
-    def _ewma(self, key:str, alpha:float, value:float) -> float:
-
-        prev = float(self.last_td.get(key,value))
-        nxt = alpha * value + (1.0 -alpha ) * prev
-        self.new_trader_data[key] = nxt
-
-        return nxt
   
     def _calc_spread(self, hydro_mid, velvet_mid):
         return hydro_mid - (COINT_ALPHA + COINT_BETA *velvet_mid)
@@ -338,17 +321,144 @@ class HydrogelPack:
     def _compute_spread(self, hydro_mid, velvet_mid):
         return self._calc_spread(hydro_mid, velvet_mid)
 
+    def _calc_var(self, spread, lookback=180):
+        self.h.spread_history.append(spread)
+        self.h.spread_history = self.h.spread_history[-(lookback + 1):]
+        
+        # Compute variance on returns
+        if len(self.h.spread_history) > 2: # Need at least 3 prices to get 2 returns for ddof=1
+            spreads = np.array(self.h.spread_history)
+            var = np.var(spreads, ddof=1)
+            
+            # Safety check: if variance is 0 or NaN, use a tiny default to avoid math errors
+            if np.isnan(var) or var == 0:
+                var = 1e-8 
+        else:
+            var = 1e-8 # Default small variance for the first few ticks
+        
+        self.new_trader_data[self.h.history_key] = list(self.h.spread_history)
+        return var
+    
     def _compute_z(self, spread): 
-        a_m = TraderBase._alpha_from_halflife(SPREAD_MEAN_HALFLIFE_TICKS) # slow alpha, mean should remain stable
-        a_v = TraderBase._alpha_from_halflife(SPREAD_VAR_HALFLIFE_TICKS) #faster alpha, varaince needs to adapt
 
-        mu = self._ewma("hydro_mu", a_m, spread) # rolling mean of spread
-
-        dev = spread - mu
-        var = self._ewma("hydro_var", a_v, dev * dev)
+        mu = 0
+        var = self._calc_var(spread-mu)
         st = math.sqrt(max(1e-9, var)) # guard against negative/zero variance to avoid erros
         z = (spread - mu) / st
-        return z,  mu, st
+        return z, mu, st
+
+    def _coint_overlay(self, z):
+
+        prev = bool(self.last_td.get("hydro_coint_on", False))
+        now = prev
+
+        if not prev and abs(z) >= Z_ENTER:
+            now = True
+        if prev and abs(z) <= Z_EXIT:
+            now = False
+        
+        self.new_trader_data['hydro_coint_on'] = now
+        return now
+
+    # Keep naming compatible with call-sites below.
+    def _overlay_active(self, z):
+        return self._coint_overlay(z)
+
+    def get_orders(self):
+        # 1. Validation: Ensure we have data for both legs
+        if self.h.wall_mid is None or self.v.wall_mid is None:
+            return {}
+
+        # 2. Signal Generation
+        hydro_mid = float(self.h.wall_mid)
+        velvet_mid = float(self.v.wall_mid)
+        spread = self._compute_spread(hydro_mid, velvet_mid)
+        z, _, st = self._compute_z(spread)
+        
+        # Overlay determines if we are currently in an active trade signal
+        overlay_on = self._overlay_active(z)
+
+        # 3. Execution Logic (Pure Taker)
+        # We only trade if the signal is active (overlay_on)
+        if overlay_on:
+            # SPREAD IS TOO HIGH (Z > 0): Long Velvet (opposite of Short Hydrogel)
+            if z > 0:
+                quantity = self.v.max_allowed_buy_volume
+                if quantity > 0:
+                    # Buying at the best ask price ensures an immediate fill
+                    self.v.bid(self.v.best_ask, quantity)
+            
+            # SPREAD IS TOO LOW (Z < 0): Short Velvet (opposite of Long Hydrogel)
+            elif z < 0:
+                quantity = self.v.max_allowed_sell_volume
+                if quantity > 0:
+                    # Selling at the best bid price ensures an immediate fill
+                    self.v.ask(self.v.best_bid, quantity)
+
+        else:
+            # EXIT LOGIC: Flatten if overlay is OFF but we still have a position
+            if self.v.expected_position > 0:
+                # We are Long, need to Sell to exit
+                # We hit the best_bid to ensure immediate exit (Taker)
+                self.v.ask(self.v.best_bid+6, abs(self.v.expected_position))
+                
+
+                #np.tanh(z)
+            elif self.v.expected_position < 0:
+                # We are Short, need to Buy to exit
+                # We hit the best_ask to ensure immediate exit (Taker)
+                self.v.bid(self.v.best_ask-6, abs(self.v.expected_position))
+        return {OPTION_UNDERLYING_SYMBOL: self.v.orders}
+
+class HydrogelPack:
+    def __init__(self,state,new_trader_data):
+        self.state = state
+        self.new_trader_data = new_trader_data
+
+        self.h = TraderBase(HYDROGEL_PACK, state, new_trader_data)
+        self.v = TraderBase(OPTION_UNDERLYING_SYMBOL, state, new_trader_data)
+
+        self.h.history_key = f"{HYDROGEL_PACK}_history"
+        self.h.spread_history  = self.h.last_traderData.get(self.h.history_key, [])
+    
+
+        try:
+            self.last_td = self.h.last_traderData
+        except Exception:
+            self.last_td = {}
+  
+    def _calc_spread(self, hydro_mid, velvet_mid):
+        return hydro_mid - (COINT_ALPHA + COINT_BETA *velvet_mid)
+
+    # Keep naming compatible with call-sites below.
+    def _compute_spread(self, hydro_mid, velvet_mid):
+        return self._calc_spread(hydro_mid, velvet_mid)
+
+    def _calc_var(self, spread, lookback=180):
+        self.h.spread_history.append(spread)
+        self.h.spread_history = self.h.spread_history[-(lookback + 1):]
+        
+        # Compute variance on returns
+        if len(self.h.spread_history) > 2: # Need at least 3 prices to get 2 returns for ddof=1
+            spreads = np.array(self.h.spread_history)
+            var = np.var(spreads, ddof=1)
+            
+            # Safety check: if variance is 0 or NaN, use a tiny default to avoid math errors
+            if np.isnan(var) or var == 0:
+                var = 1e-8 
+        else:
+            var = 1e-8 # Default small variance for the first few ticks
+        
+        self.new_trader_data[self.h.history_key] = list(self.h.spread_history)
+        return var
+    
+    def _compute_z(self, spread): 
+
+        mu = 0
+        var = self._calc_var(spread-mu)
+        st = math.sqrt(max(1e-9, var)) # guard against negative/zero variance to avoid erros
+        z = (spread - mu) / st
+        return z, mu, st
 
     def _coint_overlay(self, z):
 
@@ -397,6 +507,20 @@ class HydrogelPack:
                 if quantity > 0:
                     # Buying at the best ask price ensures an immediate fill
                     self.h.bid(self.h.best_ask, quantity)
+
+        else:
+            # EXIT LOGIC: Flatten if overlay is OFF but we still have a position
+            if self.h.expected_position > 0:
+                # We are Long, need to Sell to exit
+                # We hit the best_bid to ensure immediate exit (Taker)
+                self.h.ask(self.h.best_bid+6, abs(self.h.expected_position))
+                
+
+                #np.tanh(z)
+            elif self.h.expected_position < 0:
+                # We are Short, need to Buy to exit
+                # We hit the best_ask to ensure immediate exit (Taker)
+                self.h.bid(self.h.best_ask-6, abs(self.h.expected_position))
         return {HYDROGEL_PACK: self.h.orders}
 
 class Trader:
@@ -408,6 +532,7 @@ class Trader:
         
         product_traders = {
             HYDROGEL_PACK: HydrogelPack,
+            #OPTION_UNDERLYING_SYMBOL: VelvetFruit,
         }
 
         for symbol, product_trader in product_traders.items(): # Goes through the currently traded items and gets their current order response
