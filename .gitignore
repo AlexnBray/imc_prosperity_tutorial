@@ -1,4 +1,6 @@
 **/__pycache__/
 **\__pycache__\
+**\runs\
+**/runs/
 New_Vis/src/renderer/public/scichart2d.wasm
 New_Vis/src/renderer/public/scichart2d.data

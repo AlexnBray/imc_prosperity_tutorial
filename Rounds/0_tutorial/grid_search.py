@@ -16,18 +16,16 @@ SIM_CMD     = rf"{BASE}\.venv\Scripts\prosperity4mcbt.exe"
 
 # Define ranges to test
 param_grid = {
-    'skew_cf': [0.5, 1.5, 2, 3, 4, 5, 6, 7, 8],
-    'min_edge': [1.0, 2.0, 3.0, 4.0, 5.0, 6.0],
-    'drop_edge': [2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0],
+    'MR_Z_BUY': [2, 2.25, 2.5, 2.57, 3, 3.25, 3.5, 3.75, 4, 4.25, 4.5],
+    'MR_Z_SELL': [2, 2.25, 2.5, 2.57, 3, 3.25, 3.5, 3.75, 4, 4.25, 4.5],
 }
 
 def run_simulation(params):
     """Runs simulation by passing parameters through Environment Variables."""
     # Create a unique environment for this specific worker
     env_vars = os.environ.copy()
-    env_vars["SKEW_CF"] = str(params['skew_cf'])
-    env_vars["MIN_EDGE"] = str(params['min_edge'])
-    env_vars["DROP_EDGE"] = str(params['drop_edge'])
+    env_vars["MR_Z_BUY"] = str(params['MR_Z_BUY'])
+    env_vars["MR_Z_SELL"] = str(params['MR_Z_SELL'])
 
     cmd = [
         SIM_CMD, TRADER_PATH,
@@ -77,9 +75,8 @@ if __name__ == "__main__":
         fig.suptitle("Grid Search: Parameter Effects on Mean PnL", fontsize=14)
         
         params_to_plot = [
-            ('skew_cf', 'Skew CF'),
-            ('min_edge', 'Min Edge'),
-            ('drop_edge', 'Drop Edge'),
+            ('MR_Z_BUY', 'MR Z Buy'),
+            ('MR_Z_SELL', 'MR Z Sell'),
         ]
         
         for ax, (param, label) in zip(axes, params_to_plot):
