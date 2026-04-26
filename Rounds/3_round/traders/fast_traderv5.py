@@ -519,6 +519,6 @@ class Trader:
         try: final_trader_data = json.dumps(new_trader_data)
         except: final_trader_data = ''
 
-        # logger.flush(state, result, conversions, final_trader_data, all_signals)
+        logger.flush(state, result, conversions, final_trader_data, all_signals)
 
         return result, conversions, final_trader_data
