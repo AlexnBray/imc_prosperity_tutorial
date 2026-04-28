@@ -60,18 +60,18 @@ p_35P = np.maximum(35 - S_3wk, 0)   # vanilla AC_35_P (for hedge)
 # ── Per-path PnL for each recommended trade (× contract size already) ────────
 # BUY trades: payoff - entry cost
 # SELL trades: entry price received - payoff owed
-pnl_P2 = 50  * (p_P2  - 9.75)   * CONTRACT_SIZE
-pnl_C2 = 50  * (p_C2  - 9.75)   * CONTRACT_SIZE
-pnl_CO = 50  * (22.20 - p_CO)   * CONTRACT_SIZE
-pnl_BP = 50  * (5.00  - p_BP)   * CONTRACT_SIZE
-pnl_KO = 500 * (0.15  - p_KO)  * CONTRACT_SIZE
+pnl_P2 = 50  * (p_P2  - 9.75)   * CONTRACT_SIZE   # BUY 50 at ask 9.75
+pnl_C2 = 50  * (p_C2  - 9.75)   * CONTRACT_SIZE   # BUY 50 at ask 9.75
+pnl_CO = 50  * (22.20 - p_CO)   * CONTRACT_SIZE   # SELL 50 at bid 22.20
+pnl_BP = 50  * (5.00  - p_BP)   * CONTRACT_SIZE   # SELL 50 at bid 5.00
+pnl_KO = 500 * (p_KO  - 0.175) * CONTRACT_SIZE   # BUY 500 at ask 0.175 (barrier=35, fair=0.252)
 
 # Portfolio variants
 pnl_base    = pnl_P2 + pnl_C2 + pnl_CO + pnl_BP          # no KO
-pnl_full    = pnl_base + pnl_KO                             # all trades
-# Hedge A: buy 500 AC_45_P at ask (9.10) alongside selling 500 KO — 1-for-1 vanilla hedge
-pnl_hedgeA  = pnl_full + 500 * (p_45P - 9.10) * CONTRACT_SIZE
-# Hedge B: buy 500 AC_35_P at ask (4.35) as cheap tail protection for KO exposure
+pnl_full    = pnl_base + pnl_KO                             # all 5 trades
+# Hedge A: sell 500 AC_45_P at bid (9.05) — offsets KO's vanilla-put exposure, crystalises edge early
+pnl_hedgeA  = pnl_full + 500 * (9.05 - p_45P) * CONTRACT_SIZE
+# Hedge B: buy 500 AC_35_P at ask (4.35) — cheap barrier insurance: pays off when KO is knocked out
 pnl_hedgeB  = pnl_full + 500 * (p_35P - 4.35) * CONTRACT_SIZE
 
 # ── Helper: risk statistics ───────────────────────────────────────────────────
@@ -283,12 +283,13 @@ fig3, axes = plt.subplots(2, 3, figsize=(16, 9))
 fig3.suptitle("Figure 3  |  Per-Trade PnL Distribution  (at expiry, full volume, x contract size 3000)")
 axes_flat = axes.flatten()
 
+ko_fair_mc = float(np.mean(p_KO))
 trades = [
-    ("BUY 50 x AC_50_P2 @ 9.75", pnl_P2,  CYAN,   9.8707, 9.75, "BUY"),
-    ("BUY 50 x AC_50_C2 @ 9.75", pnl_C2,  PURPLE, 9.8707, 9.75, "BUY"),
-    ("SELL 50 x chooser @ 22.20", pnl_CO, GREEN,  21.8977, 22.20, "SELL"),
-    ("SELL 50 x binary @ 5.00",   pnl_BP, YELLOW, 4.7679,  5.00, "SELL"),
-    ("SELL 500 x KO @ 0.15",      pnl_KO, RED,    0.0032,  0.15, "SELL"),
+    ("BUY 50 x AC_50_P2 @ 9.75",   pnl_P2,  CYAN,   9.8707,     9.75,  "BUY"),
+    ("BUY 50 x AC_50_C2 @ 9.75",   pnl_C2,  PURPLE, 9.8707,     9.75,  "BUY"),
+    ("SELL 50 x chooser @ 22.20",   pnl_CO,  GREEN,  21.8977,    22.20, "SELL"),
+    ("SELL 50 x binary @ 5.00",     pnl_BP,  YELLOW, 4.7679,     5.00,  "SELL"),
+    ("BUY 500 x KO @ 0.175",        pnl_KO,  CYAN,   ko_fair_mc, 0.175, "BUY"),
 ]
 
 for ax, (title, pnl, col, fair, entry, direction) in zip(axes_flat, trades):
@@ -327,11 +328,11 @@ fig4.suptitle("Figure 4  |  Portfolio Risk & KO Hedging Strategies")
 portfolios = [
     ("No KO  (4 trades: P2+C2+CO+BP)",
      pnl_base,   CYAN),
-    ("Full (all 5 trades incl. KO, 500 units)",
+    ("Full (all 5 trades incl. BUY 500 KO @ 0.175)",
      pnl_full,   ORANGE),
-    ("Hedge A: full + BUY 500 x AC_45_P @ 9.10\n(1-for-1 vanilla put hedge on KO)",
+    ("Hedge A: full + SELL 500 x AC_45_P @ 9.05\n(offsets KO vanilla-put exposure)",
      pnl_hedgeA, GREEN),
-    ("Hedge B: full + BUY 500 x AC_35_P @ 4.35\n(cheap OTM tail-risk hedge on KO)",
+    ("Hedge B: full + BUY 500 x AC_35_P @ 4.35\n(barrier insurance: pays when KO knocked out)",
      pnl_hedgeB, PURPLE),
 ]
 
@@ -360,6 +361,115 @@ for ax, (title, pnl, col) in zip(axes.flatten(), portfolios):
 plt.tight_layout()
 fig4.savefig("fig4_portfolio_risk.png", dpi=150, bbox_inches="tight")
 print("  Saved fig4_portfolio_risk.png")
+
+# ============================================================
+# FIGURE 5 — Fair value vs time (theta decay)
+# ============================================================
+print("Plotting Figure 5: Option fair prices vs time...")
+from scipy.stats import norm as _norm
+
+def _bs_call(S, K, T, sigma):
+    if T <= 0: return max(S - K, 0.0)
+    d1 = (np.log(S / K) + 0.5 * sigma**2 * T) / (sigma * np.sqrt(T))
+    d2 = d1 - sigma * np.sqrt(T)
+    return S * _norm.cdf(d1) - K * _norm.cdf(d2)
+
+def _bs_put(S, K, T, sigma):
+    if T <= 0: return max(K - S, 0.0)
+    d1 = (np.log(S / K) + 0.5 * sigma**2 * T) / (sigma * np.sqrt(T))
+    d2 = d1 - sigma * np.sqrt(T)
+    return K * _norm.cdf(-d2) - S * _norm.cdf(-d1)
+
+def _bs_binary_put(S, K, T, sigma, payoff=10.0):
+    if T <= 0: return payoff if S < K else 0.0
+    d1 = (np.log(S / K) + 0.5 * sigma**2 * T) / (sigma * np.sqrt(T))
+    d2 = d1 - sigma * np.sqrt(T)
+    return payoff * _norm.cdf(-d2)
+
+TRADING_DAYS = 15   # total 3-week horizon in trading days
+times = np.linspace(0, TRADING_DAYS, 300)   # days elapsed from now
+sigma = SIGMA
+
+p2_fair  = [_bs_put(S0, 50, max(0, (10 - t)) / TRADING_DAYS_PER_YEAR, sigma) for t in times]
+c2_fair  = [_bs_call(S0, 50, max(0, (10 - t)) / TRADING_DAYS_PER_YEAR, sigma) for t in times]
+co_fair  = [_bs_call(S0, 50, max(0, (15 - t)) / TRADING_DAYS_PER_YEAR, sigma)
+            + _bs_put(S0, 50, max(0, (10 - t)) / TRADING_DAYS_PER_YEAR, sigma) for t in times]
+bp_fair  = [_bs_binary_put(S0, 40, max(0, (15 - t)) / TRADING_DAYS_PER_YEAR, sigma) for t in times]
+ko_fair_t = [float(np.mean(p_KO)) if t == 0 else float(np.mean(p_KO) * max(0, 1 - t / TRADING_DAYS) ** 0.3)
+             for t in times]  # rough KO decay proxy
+
+fig5, ax5 = plt.subplots(figsize=(14, 6))
+fig5.suptitle("Figure 5  |  Option Fair Prices vs Time  +  Trade Entries")
+ax5.set_title("Model fair values over time (holding spot fixed at S0=50)", fontsize=10)
+
+ax5.plot(times, p2_fair,  color=CYAN,   lw=2, label="AC_50_P2 fair")
+ax5.plot(times, c2_fair,  color=PURPLE, lw=2, label="AC_50_C2 fair")
+ax5.plot(times, co_fair,  color=GREEN,  lw=2, label="AC_50_CO fair")
+ax5.plot(times, bp_fair,  color=YELLOW, lw=2, label="AC_40_BP fair")
+ax5.plot(times, ko_fair_t, color=RED,   lw=2, label="AC_45_KO fair (MC)")
+
+ax5.axvline(10, color="white", lw=1.2, ls="--", alpha=0.6, label="Chooser decision (day 10)")
+ax5.axvline(15, color=GREY,    lw=1.2, ls="--", alpha=0.6, label="3-week expiry (day 15)")
+
+market_entries = [
+    (0, p2_fair[0],  9.75,  "BUY  AC_50_P2 @ 9.75",  GREEN,  "^"),
+    (0, c2_fair[0],  9.75,  "BUY  AC_50_C2 @ 9.75",  GREEN,  "^"),
+    (0, co_fair[0],  22.20, "SELL AC_50_CO @ 22.20",  RED,    "v"),
+    (0, bp_fair[0],  5.00,  "SELL AC_40_BP @ 5.00",   RED,    "v"),
+    (0, ko_fair_t[0],0.175, "BUY  AC_45_KO @ 0.175",  GREEN,  "^"),
+]
+for t_entry, fair_val, mkt_price, label, col, marker in market_entries:
+    ax5.scatter([t_entry], [mkt_price], color=col, marker=marker, s=100, zorder=5)
+    ax5.text(t_entry + 0.1, mkt_price + 0.3, label, color=col, fontsize=7)
+
+ax5.set_xlabel("Time from now (trading days)")
+ax5.set_ylabel("Option price")
+ax5.legend(fontsize=8, loc="upper right")
+ax5.grid(True, lw=0.4)
+
+plt.tight_layout()
+fig5.savefig("fig5_time_option_prices_trades.png", dpi=150, bbox_inches="tight")
+print("  Saved fig5_time_option_prices_trades.png")
+
+# ============================================================
+# FIGURE 6 — Option prices + trade signal markers
+# ============================================================
+print("Plotting Figure 6: Option prices with BUY/SELL signals...")
+
+products_fig6 = [
+    ("AC_50_P2",  9.70,  9.75,  9.8707,     "BUY",  0.1207),
+    ("AC_50_C2",  9.70,  9.75,  9.8707,     "BUY",  0.1207),
+    ("AC_50_CO",  22.20, 22.30, 21.8977,    "SELL", 0.3023),
+    ("AC_40_BP",  5.00,  5.10,  4.7679,     "SELL", 0.2321),
+    ("AC_45_KO",  0.15,  0.175, ko_fair_mc, "BUY",  ko_fair_mc - 0.175),
+]
+
+fig6, ax6 = plt.subplots(figsize=(14, 6))
+fig6.suptitle("Figure 6  |  Option Prices + Trade Side (BUY/SELL)")
+ax6.set_title("Each product: bid/ask/fair and recommended trade side", fontsize=10)
+
+x_pos = np.arange(len(products_fig6))
+for i, (name, bid, ask, fair, action, edge) in enumerate(products_fig6):
+    ax6.scatter([i], [bid],  color=CYAN,   s=60, zorder=4, label="Bid" if i == 0 else "")
+    ax6.scatter([i], [ask],  color=ORANGE, s=60, zorder=4, label="Ask" if i == 0 else "")
+    ax6.scatter([i], [fair], color=YELLOW, s=80, marker="D", zorder=5, label="Fair value" if i == 0 else "")
+
+    col    = GREEN if action == "BUY" else RED
+    marker = "^"   if action == "BUY" else "v"
+    trade_price = ask if action == "BUY" else bid
+    ax6.scatter([i], [trade_price], color=col, marker=marker, s=150, zorder=6)
+    ax6.text(i, trade_price + abs(fair) * 0.04,
+             f"edge={edge:+.3f}\n{action}", color=col, fontsize=8, ha="center", va="bottom")
+
+ax6.set_xticks(x_pos)
+ax6.set_xticklabels([p[0] for p in products_fig6], fontsize=9)
+ax6.set_ylabel("Option price")
+ax6.legend(fontsize=9, loc="upper right")
+ax6.grid(True, lw=0.4)
+
+plt.tight_layout()
+fig6.savefig("fig6_option_prices_with_trades.png", dpi=150, bbox_inches="tight")
+print("  Saved fig6_option_prices_with_trades.png")
 
 # ============================================================
 # Print risk table to console
