@@ -7,6 +7,10 @@ from functools import wraps
 from typing import Any, List, Dict
 from datamodel import Listing, Order, OrderDepth, ProsperityEncoder, Symbol, Trade, TradingState
 
+DAY = 4
+
+TTE = 8 - int(DAY)
+
 VELVETFRUIT_EXTRACT = "VELVETFRUIT_EXTRACT"
 HYDROGEL_PACK = "HYDROGEL_PACK"
 VEV_4000 = "VEV_4000"
@@ -56,11 +60,11 @@ MR_Z_BUY_THRESHOLD = {
     VEV_5000: 2.5,
     VEV_5100: 2.0,
     VEV_5200: 2.0,
-    VEV_5300: 1.5 ,
-    VEV_5400: 2.5,
+    VEV_5300: 1.5,
+    VEV_5400: 3.0,
     VEV_5500: 1.75
 }
-#float(os.getenv("MR_Z_BUY", 3.5))
+
 MR_Z_SELL_THRESHOLD = {
     HYDROGEL_PACK: 2.0 ,
     VELVETFRUIT_EXTRACT: 4.00,
@@ -70,35 +74,47 @@ MR_Z_SELL_THRESHOLD = {
     VEV_5100: 4.0,
     VEV_5200: 2.0,
     VEV_5300: 4.5,
-    VEV_5400: 4.0 ,
+    VEV_5400: 3.0,
     VEV_5500: 2.5 
 }
-#float(os.getenv("MR_Z_SELL", 3.2))
 
-KF_PARAM = { # Kalman Filter parameters: [Q process variance, R measurement variance]
-    HYDROGEL_PACK: [1e-5, 0.05],
-    VELVETFRUIT_EXTRACT: [1e-5, 0.05],
-    VEV_4000: [1e-5, 0.05],
-    VEV_4500: [1e-5, 0.05],
-    VEV_5000: [1e-5, 0.05],
-    VEV_5100: [1e-5, 0.05],
-    VEV_5200: [1e-5, 0.05],
-    VEV_5300: [1e-5, 0.05],
-    VEV_5400: [1e-5, 0.05],
-    VEV_5500: [1e-5, 0.05]
-}
-
-GLOBAL_MEAN = {
+GLOBAL_INT = {
     HYDROGEL_PACK: 9991.0,
     VELVETFRUIT_EXTRACT: 5250.0,
-    VEV_4000: 1250.0,
-    VEV_4500: 750.0,
-    VEV_5000: 255.0,
-    VEV_5100: 161.0,
-    VEV_5200: 96.0,
-    VEV_5300: 47.0,
-    VEV_5400: 16.0,
-    VEV_5500: 7.0
+    VEV_4000: 1250.0, #d
+    VEV_4500: 750.0, #done
+    VEV_5000: 253.0, #d
+    VEV_5100: 150.0, #d
+    VEV_5200: 50.0, #d
+    VEV_5300: 1.0, #d
+    VEV_5400: 8.0, #d
+    VEV_5500: 1.0 #d
+}
+
+GLOBAL_SLOPE = {
+    HYDROGEL_PACK: 0.0,
+    VELVETFRUIT_EXTRACT: 0.0,
+    VEV_4000: 0.0 , #d
+    VEV_4500: 0.0, # done
+    VEV_5000: 0.0, #d
+    VEV_5100: 0.006765 , #d
+    VEV_5200: 0.020842  , #d
+    VEV_5300: 0.022734, #d
+    VEV_5400: 0, #d
+    VEV_5500: 0 #d
+}
+
+GLOBAL_TTE_TRANSLATION = {
+    HYDROGEL_PACK: 0,
+    VELVETFRUIT_EXTRACT: 0,
+    VEV_4000: 0,#d
+    VEV_4500: 0, #d
+    VEV_5000: 0,#d
+    VEV_5100: 1e6,#d
+    VEV_5200: 2e6, #d
+    VEV_5300: 2.5e6, #d
+    VEV_5400: 4e6, #d
+    VEV_5500: 4.6e6 #d 
 }
 
 # Short key prefixes to minimise JSON payload size
@@ -261,17 +277,13 @@ def handle_none(default_active=False, default_cache_prev=True, default_fallback=
     return decorator
 
 class TraderBase:
-    def __init__(self, name, state, new_trader_data,seller, buyer):
+    def __init__(self, name, state, new_trader_data):
 
         self.orders = []
 
         self.name = name
         self.state = state
         self.new_trader_data = new_trader_data
-
-        #round 4 insider jits
-        self.buyer =buyer
-        self.seller = seller
 
         self.last_traderData = self.get_last_traderData()
 
@@ -362,7 +374,7 @@ class SpikeHedger(TraderBase):
         super().__init__(name, state, new_trader_data)
 
     def get_orders(self):
-        self.bid(self.best_ask, self.max_allowed_buy_volume)
+        self.bid(0, self.max_allowed_buy_volume)
     
         return {self.name: self.orders}
     
@@ -373,7 +385,9 @@ class MRTrader(TraderBase):
         self.window = ROLLING_WINDOW_VAR.get(name, 100)
         self.z_buy_threshold  = MR_Z_BUY_THRESHOLD.get(name, 2.5)
         self.z_sell_threshold = MR_Z_SELL_THRESHOLD.get(name, 2.5)
-        self.mean = GLOBAL_MEAN.get(name, 0) 
+        self.intercept = GLOBAL_INT.get(name, 10)
+        self.slope = GLOBAL_SLOPE.get(name, 10)
+        self.tte_translation = GLOBAL_TTE_TRANSLATION.get(name, 10)
 
         # Short key prefix — keeps JSON payload small
         p = _SHORT_PFX.get(name, name[:2])
@@ -386,15 +400,6 @@ class MRTrader(TraderBase):
         self._buf    = deque(self._unpack_buf(raw) if raw else [], maxlen=self.window)
         self._sum_x  = float(self.last_traderData.get(self._sxk, 0.0))
         self._sum_x2 = float(self.last_traderData.get(self._s2k, 0.0))
-
-        # Kalman filter state
-        """
-        self.kf_fv     = self.last_traderData.get(f"{p}kfv", self.wall_mid)
-        self.kf_uncert = self.last_traderData.get(f"{p}kfu", 100)
-        self.kf_q, self.kf_r = KF_PARAM.get(name, [0.0001, 0.1])
-        self._kfv_key = f"{p}kfv"
-        self._kfu_key = f"{p}kfu"
-        """
 
     # ------------------------------------------------------------------
     # Buffer packing helpers
@@ -454,16 +459,16 @@ class MRTrader(TraderBase):
 
         var = (self._sum_x2 - (self._sum_x * self._sum_x) / n) / (n - 1)
         return max(var, 1e-8)
-
-    def kalmanfilt(self, observation: float) -> float:
-        fv_pred     = self.kf_fv
-        uncert_pred = self.kf_uncert
-        residual    = observation - fv_pred
-        s           = uncert_pred + self.kf_r
-        k           = uncert_pred / s
-        self.kf_fv     = fv_pred + k * residual
-        self.kf_uncert = (1 - k) * uncert_pred
-        return self.kf_fv
+    
+    def _calc_mean(self, intercept, slope):
+        x= self.state.timestamp
+        if slope != 0:
+            inside = ((TTE * 1e6)- self.tte_translation) - x
+            inside = max(inside,0)
+            self.mean = intercept + slope * math.sqrt(inside)
+        else:
+            self.mean = GLOBAL_INT[self.name]
+        return self.mean
 
     def _compute_z(self, value: float, mean: float) -> float:
         # Pass deviation into _calc_var so the running sums stay near zero
@@ -472,10 +477,11 @@ class MRTrader(TraderBase):
         return dev / math.sqrt(var)
 
     def get_orders(self):
-        if self.wall_mid is None:
+        if self.wall_mid is None or self.best_bid is None or self.best_ask is None:
             return {self.name: self.orders}
-            
-        z = self._compute_z(self.wall_mid, self.mean)
+
+        mean = self._calc_mean(self.intercept, self.slope)   # <-- compute number
+        z = self._compute_z(self.wall_mid, mean)
 
         if z > 0 and abs(z) > self.z_sell_threshold:
             self.ask(self.best_bid, self.max_allowed_sell_volume)
@@ -486,6 +492,30 @@ class MRTrader(TraderBase):
 
     def debug(self):
         return self.mean
+
+class MicroSpikeTrader(TraderBase):
+    def __init__(self,name,state,new_trader_data):
+        super().__init__(name,state,new_trader_data)
+        self.mean = GLOBAL_INT.get(self.name,0)
+
+    def get_orders(self):
+
+        if self.best_bid > 2:
+            self.ask(self.best_bid, self.max_allowed_sell_volume)
+
+        if self.best_ask <= 2:
+            self.bid(self.best_ask, self.max_allowed_buy_volume)
+
+        return {self.name: self.orders}
+
+class ShortTrader(TraderBase):
+    def __init__(self,name,state,new_trader_data):
+        super().__init__(name,state,new_trader_data)
+
+    def get_orders(self):
+        self.ask(self.best_bid,self.max_allowed_sell_volume)
+
+        return {self.name: self.orders}
 
 
 class Trader:
@@ -505,7 +535,7 @@ class Trader:
             VEV_5200: MRTrader,
             VEV_5300: MRTrader,
             VEV_5400: MRTrader,
-            VEV_5500: MRTrader,
+            VEV_5500: MicroSpikeTrader,
             VEV_6000: SpikeHedger,
             VEV_6500: SpikeHedger,
         }

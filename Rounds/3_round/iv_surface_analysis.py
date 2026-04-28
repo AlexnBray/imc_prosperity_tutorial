@@ -10,10 +10,10 @@ DATA_DIR = Path(__file__).resolve().parent / 'data'
 OUTPUT_DIR = Path(__file__).resolve().parent / 'outputs'
 OUTPUT_DIR.mkdir(exist_ok=True)
 
-OPTION_SYMBOLS = {5000, 5100, 5200, 5300, 5400, 5500}
+OPTION_SYMBOLS = {4000, 4500, 5000, 5100, 5200, 5300, 5400, 5500}
 UNDERLYING_SYMBOL = 'VELVETFRUIT_EXTRACT'
 OPTION_PREFIX = 'VEV_'
-EXPIRY_DAY = 3
+EXPIRY_DAY = 5
 DAYS_PER_YEAR = 365
 
 

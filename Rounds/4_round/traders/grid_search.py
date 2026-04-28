@@ -8,8 +8,8 @@ from itertools import product
 import matplotlib.pyplot as plt
 
 # --- CONFIGURATION ---
-TRADER_PATH = "/home/dansp/projects/imc_prosperity_tutorial/Rounds/3_round/traders/fast_traderv5.py"
-DATASET_PATH = "/home/dansp/projects/imc_prosperity_tutorial/prosperity_rust_backtester/datasets/round3"
+TRADER_PATH = "/home/dansp/projects/imc_prosperity_tutorial/Rounds/4_round/traders/fast_traderv5.py"
+DATASET_PATH = "/home/dansp/projects/imc_prosperity_tutorial/prosperity_rust_backtester/datasets/round4"
 1
 param_grid = {
     'MR_Z_BUY': [1, 1.5, 1.75, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8],

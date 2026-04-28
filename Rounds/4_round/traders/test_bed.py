@@ -9,109 +9,46 @@ from datamodel import Listing, Order, OrderDepth, ProsperityEncoder, Symbol, Tra
 
 import os
 
-VELVETFRUIT_EXTRACT = "VELVETFRUIT_EXTRACT"
-HYDROGEL_PACK = "HYDROGEL_PACK"
-VEV_4000 = "VEV_4000"
-VEV_4500 = "VEV_4500"
-VEV_5000 = "VEV_5000"
-VEV_5100 = "VEV_5100"
-VEV_5200 = "VEV_5200"
-VEV_5300 = "VEV_5300"
-VEV_5400 = "VEV_5400"
-VEV_5500 = "VEV_5500"
+DAY = os.getenv("DAY", "1")
 
+TTE = 8 - int(DAY)
+
+TEST_PRODUCT = str(os.getenv("TEST_PRODUCT", "VEV_5400"))
+                         
 POS_LIMITS = {
-    VELVETFRUIT_EXTRACT: 200,
-    HYDROGEL_PACK: 200,
-    VEV_4000: 300,
-    VEV_4500: 300,
-    VEV_5000: 300,
-    VEV_5100: 300,
-    VEV_5200: 300,
-    VEV_5300: 300,
-    VEV_5400: 300,
-    VEV_5500: 300
+    TEST_PRODUCT: int(os.getenv("POS_LIMIT", 300))
     }
 
 ROLLING_WINDOW_VAR = {
-    HYDROGEL_PACK: 301,
-    VELVETFRUIT_EXTRACT: 280,
-    VEV_4000: 175,
-    VEV_4500: 226,
-    VEV_5000: 316,
-    VEV_5100: 326,
-    VEV_5200: 283,
-    VEV_5300: 221,
-    VEV_5400: 220,
-    VEV_5500: 131
+    TEST_PRODUCT: int(os.getenv("ROLLING_WINDOW", 100))
+}
+
+GLOBAL_INT = {
+    TEST_PRODUCT: float(os.getenv("GLOBAL_INT", 1250)),
+}
+
+GLOBAL_SLOPE = {
+    TEST_PRODUCT: float(os.getenv("GLOBAL_SLOPE", 0.0)),
+}
+
+
+GLOBAL_TTE_TRANSLATION = {
+    TEST_PRODUCT: float(os.getenv("GLOBAL_TTE_TRANSLATION", 0.0))
 }
 
 MR_Z_BUY_THRESHOLD = {
-    HYDROGEL_PACK: float(os.getenv("MR_Z_BUY", 3.2)) ,
-    VELVETFRUIT_EXTRACT: 3.25,
-    VEV_4000: 4.0,
-    VEV_4500: 2.5,
-    VEV_5000: 2.5,
-    VEV_5100: 2.0,
-    VEV_5200: 2.0,
-    VEV_5300: 1.5 ,
-    VEV_5400: 2.5,
-    VEV_5500: 1.75
+    TEST_PRODUCT: float(os.getenv("MR_Z_BUY", 2.5)),
 }
-#float(os.getenv("MR_Z_BUY", 3.5))
+
 MR_Z_SELL_THRESHOLD = {
-    HYDROGEL_PACK: float(os.getenv("MR_Z_SELL", 3.2))  ,
-    VELVETFRUIT_EXTRACT: 4,
-    VEV_4000: 5.0,
-    VEV_4500: 4.5 ,
-    VEV_5000: 3.0,
-    VEV_5100: 4.0,
-    VEV_5200: 3.0,
-    VEV_5300: 4.5,
-    VEV_5400: 4.0 ,
-    VEV_5500: 2.5 
-}
-#float(os.getenv("MR_Z_SELL", 3.2))
-
-KF_PARAM = { # Kalman Filter parameters: [Q process variance, R measurement variance]
-    HYDROGEL_PACK: [1e-5, 0.05],
-    VELVETFRUIT_EXTRACT: [1e-5, 0.05],
-    VEV_4000: [1e-5, 0.05],
-    VEV_4500: [1e-5, 0.05],
-    VEV_5000: [1e-5, 0.05],
-    VEV_5100: [1e-5, 0.05],
-    VEV_5200: [1e-5, 0.05],
-    VEV_5300: [1e-5, 0.05],
-    VEV_5400: [1e-5, 0.05],
-    VEV_5500: [1e-5, 0.05]
-}
-
-GLOBAL_MEAN = {
-    HYDROGEL_PACK: 9991.0,
-    VELVETFRUIT_EXTRACT: 5250.0,
-    VEV_4000: 1250.0,
-    VEV_4500: 750.0,
-    VEV_5000: 255.0,
-    VEV_5100: 161.0,
-    VEV_5200: 96.0,
-    VEV_5300: 47.0,
-    VEV_5400: 16.0,
-    VEV_5500: 7.0
+    TEST_PRODUCT: float(os.getenv("MR_Z_SELL", 5)),
 }
 
 # Short key prefixes to minimise JSON payload size
 _SHORT_PFX = {
-    HYDROGEL_PACK:       "HP",
-    VELVETFRUIT_EXTRACT: "VF",
-    VEV_4000: "V0",
-    VEV_4500: "V1",
-    VEV_5000: "V2",
-    VEV_5100: "V3",
-    VEV_5200: "V4",
-    VEV_5300: "V5",
-    VEV_5400: "V6",
-    VEV_5500: "V7",
+    TEST_PRODUCT: "TP",
 }
+
 
 class Logger:
     def __init__(self) -> None:
@@ -359,7 +296,9 @@ class MRTrader(TraderBase):
         self.window = ROLLING_WINDOW_VAR.get(name, 100)
         self.z_buy_threshold  = MR_Z_BUY_THRESHOLD.get(name, 2.5)
         self.z_sell_threshold = MR_Z_SELL_THRESHOLD.get(name, 2.5)
-        self.mean = GLOBAL_MEAN.get(name, 0)
+        self.int = GLOBAL_INT.get(name, 0) 
+        self.slope = GLOBAL_SLOPE.get(name, 0)
+        self.tte_translation = GLOBAL_TTE_TRANSLATION.get(name,0)
 
         # Short key prefix — keeps JSON payload small
         p = _SHORT_PFX.get(name, name[:2])
@@ -372,23 +311,6 @@ class MRTrader(TraderBase):
         self._buf    = deque(self._unpack_buf(raw) if raw else [], maxlen=self.window)
         self._sum_x  = float(self.last_traderData.get(self._sxk, 0.0))
         self._sum_x2 = float(self.last_traderData.get(self._s2k, 0.0))
-
-        # Kalman filter state
-        """
-        self.kf_fv     = self.last_traderData.get(f"{p}kfv", self.wall_mid)
-        self.kf_uncert = self.last_traderData.get(f"{p}kfu", 100)
-        self.kf_q, self.kf_r = KF_PARAM.get(name, [0.0001, 0.1])
-        self._kfv_key = f"{p}kfv"
-        self._kfu_key = f"{p}kfu"
-        """
-
-    # ------------------------------------------------------------------
-    # Buffer packing helpers
-    # Deviations from global mean are stored as int16 scaled by ×2,
-    # preserving 0.5-precision (wall_mid is always integer or x.5).
-    # Range: ±16383 — safe for any realistic deviation from global mean.
-    # 2 bytes per element vs ~8 chars per float in JSON → ~4× smaller.
-    # ------------------------------------------------------------------
 
     @staticmethod
     def _pack_buf(buf) -> str:
@@ -403,17 +325,11 @@ class MRTrader(TraderBase):
             return []
         raw = base64.b64decode(s)
         return [v / 2.0 for v in struct.unpack(f">{len(raw) // 2}h", raw)]
-
-    # ------------------------------------------------------------------
-    # O(1) online sliding-window variance
-    #
-    # Mathematically identical to np.var(window, ddof=1).
-    # `value` is already a deviation (caller passes wall_mid - mean),
-    # so sum_x and sum_x2 stay small — no catastrophic cancellation.
-    #
-    # Welford identity:
-    #   var = (sum_x2 - sum_x² / n) / (n - 1)
-    # ------------------------------------------------------------------
+    
+    def _calc_mean(self, intercept, slope):
+        x= self.state.timestamp
+        self.mean = intercept + slope * math.sqrt(TTE * 1e6 - self.tte_translation - x)
+        return self.mean
 
     def _calc_var(self, value: float) -> float:
         buf = self._buf
@@ -441,16 +357,6 @@ class MRTrader(TraderBase):
         var = (self._sum_x2 - (self._sum_x * self._sum_x) / n) / (n - 1)
         return max(var, 1e-8)
 
-    def kalmanfilt(self, observation: float) -> float:
-        fv_pred     = self.kf_fv
-        uncert_pred = self.kf_uncert
-        residual    = observation - fv_pred
-        s           = uncert_pred + self.kf_r
-        k           = uncert_pred / s
-        self.kf_fv     = fv_pred + k * residual
-        self.kf_uncert = (1 - k) * uncert_pred
-        return self.kf_fv
-
     def _compute_z(self, value: float, mean: float) -> float:
         # Pass deviation into _calc_var so the running sums stay near zero
         dev = value - mean
@@ -460,7 +366,9 @@ class MRTrader(TraderBase):
     def get_orders(self):
         if self.wall_mid is None:
             return {self.name: self.orders}
-            
+        
+        self.mean = self._calc_mean(self.int, self.slope)
+
         z = self._compute_z(self.wall_mid, self.mean)
 
         if z > 0 and abs(z) > self.z_sell_threshold:
@@ -482,16 +390,7 @@ class Trader:
         conversions    = 0
 
         product_traders = {
-            HYDROGEL_PACK: MRTrader,
-            #VELVETFRUIT_EXTRACT: MRTrader,
-            #VEV_4000: MRTrader,
-            #VEV_4500: MRTrader,
-            #VEV_5000: MRTrader,
-            #VEV_5100: MRTrader,
-            #VEV_5200: MRTrader,
-            #VEV_5300: MRTrader,
-            #VEV_5400: MRTrader,
-            #VEV_5500: MRTrader,
+           TEST_PRODUCT: MRTrader
         }
 
         for symbol, product_trader in product_traders.items():
@@ -505,8 +404,10 @@ class Trader:
                     logger.print(f"ERROR in trader for {symbol}")
 
         try: final_trader_data = json.dumps(new_trader_data)
-        except: final_trader_data = ''
+        except Exception as e: 
+            raise Exception(f"Failed to serialize trader data: {e}")
+            final_trader_data = ''
 
-        # logger.flush(state, result, conversions, final_trader_data, all_signals)
+        #logger.flush(state, result, conversions, final_trader_data, all_signals)
 
         return result, conversions, final_trader_data
