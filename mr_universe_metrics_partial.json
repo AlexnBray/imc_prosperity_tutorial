@@ -1,0 +1,53 @@
+{
+  "metadata": {
+    "database": "/home/dansp/projects/imc_prosperity_tutorial/Rounds/5_round/Traders/optuna_mr_universe.db",
+    "days_tested": [
+      2,
+      3,
+      4
+    ],
+    "symbols_with_data": [
+      "GALAXY_SOUNDS_BLACK_HOLES"
+    ],
+    "expected_trials_per_study": 200,
+    "incomplete_notes": [
+      "GALAXY_SOUNDS_BLACK_HOLES::STEP_MR (160/200 trials complete)"
+    ]
+  },
+  "by_symbol": {
+    "GALAXY_SOUNDS_BLACK_HOLES": {
+      "STEP_MR": {
+        "strategy": "STEP_MR",
+        "symbol": "GALAXY_SOUNDS_BLACK_HOLES",
+        "study_name": "r5_univ_stepmr__galaxy_sounds_black_holes",
+        "n_trials_complete": 160,
+        "objective_score": 43648.034067949506,
+        "objective_score_user_attr": 43648.034067949506,
+        "final_pnl_raw": 56507.0,
+        "mean_day_pnl": 18835.666666666668,
+        "pnl_std_across_days": 4478.276553417496,
+        "pnl_spread_range": 10172.0,
+        "min_day_pnl": 14935.0,
+        "day_pnls": [
+          14935.0,
+          16465.0,
+          25107.0
+        ],
+        "days_tested": [
+          2,
+          3,
+          4
+        ],
+        "best_params": {
+          "var_window": 614,
+          "step_long_ticks": 578,
+          "step_short_ticks": 59,
+          "step_k_sd": 10.0,
+          "sigma_floor": 0.000879121405786216,
+          "z_buy": 3.1,
+          "z_sell": 4.1
+        }
+      }
+    }
+  }
+}

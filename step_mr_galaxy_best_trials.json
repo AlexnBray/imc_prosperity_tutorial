@@ -1,0 +1,162 @@
+[
+  {
+    "symbol": "GALAXY_SOUNDS_BLACK_HOLES",
+    "best_objective_score": 29643.77757105166,
+    "best_params_env": {
+      "STEP_MR_VAR_WINDOW": "539",
+      "STEP_MR_STEP_LONG_TICKS": "201",
+      "STEP_MR_STEP_SHORT_TICKS": "145",
+      "STEP_MR_K_SD": "4.5",
+      "STEP_MR_SIGMA_FLOOR": "0.001598237549341608",
+      "STEP_MR_Z_BUY": "1.7000000000000002",
+      "STEP_MR_Z_SELL": "4.1"
+    },
+    "best_params_numeric": {
+      "var_window": 539,
+      "step_long_ticks": 201,
+      "step_short_ticks": 145,
+      "step_k_sd": 4.5,
+      "sigma_floor": 0.001598237549341608,
+      "z_buy": 1.7000000000000002,
+      "z_sell": 4.1
+    },
+    "days_tested": [
+      2,
+      3,
+      4
+    ],
+    "day_pnls": [
+      13656.0,
+      9290.0,
+      13495.0
+    ]
+  },
+  {
+    "symbol": "GALAXY_SOUNDS_DARK_MATTER",
+    "best_objective_score": 43787.25046526818,
+    "best_params_env": {
+      "STEP_MR_VAR_WINDOW": "745",
+      "STEP_MR_STEP_LONG_TICKS": "1509",
+      "STEP_MR_STEP_SHORT_TICKS": "199",
+      "STEP_MR_K_SD": "7.0",
+      "STEP_MR_SIGMA_FLOOR": "0.002658708904741185",
+      "STEP_MR_Z_BUY": "2.5",
+      "STEP_MR_Z_SELL": "2.2"
+    },
+    "best_params_numeric": {
+      "var_window": 745,
+      "step_long_ticks": 1509,
+      "step_short_ticks": 199,
+      "step_k_sd": 7.0,
+      "sigma_floor": 0.002658708904741185,
+      "z_buy": 2.5,
+      "z_sell": 2.2
+    },
+    "days_tested": [
+      2,
+      3,
+      4
+    ],
+    "day_pnls": [
+      18668.0,
+      19947.0,
+      14092.0
+    ]
+  },
+  {
+    "symbol": "GALAXY_SOUNDS_PLANETARY_RINGS",
+    "best_objective_score": 1838.9153155883944,
+    "best_params_env": {
+      "STEP_MR_VAR_WINDOW": "684",
+      "STEP_MR_STEP_LONG_TICKS": "1634",
+      "STEP_MR_STEP_SHORT_TICKS": "122",
+      "STEP_MR_K_SD": "6.0",
+      "STEP_MR_SIGMA_FLOOR": "0.001199347782184621",
+      "STEP_MR_Z_BUY": "4.5",
+      "STEP_MR_Z_SELL": "4.0"
+    },
+    "best_params_numeric": {
+      "var_window": 684,
+      "step_long_ticks": 1634,
+      "step_short_ticks": 122,
+      "step_k_sd": 6.0,
+      "sigma_floor": 0.001199347782184621,
+      "z_buy": 4.5,
+      "z_sell": 4.0
+    },
+    "days_tested": [
+      2,
+      3,
+      4
+    ],
+    "day_pnls": [
+      10940.0,
+      585.0,
+      6070.0
+    ]
+  },
+  {
+    "symbol": "GALAXY_SOUNDS_SOLAR_FLAMES",
+    "best_objective_score": 22606.445190710067,
+    "best_params_env": {
+      "STEP_MR_VAR_WINDOW": "360",
+      "STEP_MR_STEP_LONG_TICKS": "1214",
+      "STEP_MR_STEP_SHORT_TICKS": "50",
+      "STEP_MR_K_SD": "10.75",
+      "STEP_MR_SIGMA_FLOOR": "0.01858413227153481",
+      "STEP_MR_Z_BUY": "2.4000000000000004",
+      "STEP_MR_Z_SELL": "3.9000000000000004"
+    },
+    "best_params_numeric": {
+      "var_window": 360,
+      "step_long_ticks": 1214,
+      "step_short_ticks": 50,
+      "step_k_sd": 10.75,
+      "sigma_floor": 0.01858413227153481,
+      "z_buy": 2.4000000000000004,
+      "z_sell": 3.9000000000000004
+    },
+    "days_tested": [
+      2,
+      3,
+      4
+    ],
+    "day_pnls": [
+      8496.0,
+      7563.0,
+      9539.0
+    ]
+  },
+  {
+    "symbol": "GALAXY_SOUNDS_SOLAR_WINDS",
+    "best_objective_score": 11993.70604728003,
+    "best_params_env": {
+      "STEP_MR_VAR_WINDOW": "163",
+      "STEP_MR_STEP_LONG_TICKS": "379",
+      "STEP_MR_STEP_SHORT_TICKS": "117",
+      "STEP_MR_K_SD": "5.25",
+      "STEP_MR_SIGMA_FLOOR": "0.0009467276635692014",
+      "STEP_MR_Z_BUY": "4.2",
+      "STEP_MR_Z_SELL": "3.9000000000000004"
+    },
+    "best_params_numeric": {
+      "var_window": 163,
+      "step_long_ticks": 379,
+      "step_short_ticks": 117,
+      "step_k_sd": 5.25,
+      "sigma_floor": 0.0009467276635692014,
+      "z_buy": 4.2,
+      "z_sell": 3.9000000000000004
+    },
+    "days_tested": [
+      2,
+      3,
+      4
+    ],
+    "day_pnls": [
+      7740.0,
+      8226.0,
+      3454.0
+    ]
+  }
+]

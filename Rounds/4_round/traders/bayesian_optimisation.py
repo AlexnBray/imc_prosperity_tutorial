@@ -14,8 +14,8 @@ warnings.filterwarnings("ignore")
 optuna.logging.set_verbosity(optuna.logging.WARNING)
 
 # Update these paths as necessary for your local environment
-TRADER_PATH  = "/home/dansp/projects/imc_prosperity_tutorial/Rounds/4_round/traders/test_bed.py"
-DATASET_PATH = "/home/dansp/projects/imc_prosperity_tutorial/prosperity_rust_backtester/datasets/round4"
+TRADER_PATH  = "/home/dansp/projects/imc_prosperity_tutorial/Rounds/5_round/Traders/test_bed.py"
+DATASET_PATH = "/home/dansp/projects/imc_prosperity_tutorial/prosperity_rust_backtester/datasets/round5"
 
 # Days to iterate over
 DAYS_TO_TEST = [1,2,3] 
@@ -28,7 +28,8 @@ STEP = 0.1
 
 DB_FILE = "optuna_parallel.db"
 DB_PATH = f"sqlite:///{DB_FILE}?timeout=60"
-STUDY_NAME = "velvetfruit_plateau_opt"
+OPT_PRODUCT = os.getenv("OPT_PRODUCT", "PEBBLES_XS")
+STUDY_NAME = f"{OPT_PRODUCT.lower()}_round5_opt"
 
 # ─────────────────────────────────────────────
 #  SIMULATION ENGINE
@@ -38,16 +39,17 @@ def run_simulation(params: dict) -> dict | None:
     base_env = os.environ.copy()
     
     # Static parameters used across all trials
-    base_env["TEST_PRODUCT"]   = "VELVETFRUIT_EXTRACT"
-    base_env["POS_LIMIT"]      = "200"      
-    base_env["GLOBAL_INT"]    = "5250"
-    base_env["GLOBAL_SLOPE"]   = "0"
-    base_env["GLOBAL_TTE_TRANSLATION"]   = "0"
+    base_env["TEST_PRODUCTS"] = OPT_PRODUCT
+    base_env["P1_TYPE"] = os.getenv("OPT_PRODUCT_TYPE", "MR")
+    base_env["P1_SHORT_CODE"] = os.getenv("OPT_SHORT_CODE", "OPT1")
+    base_env["P1_POS_LIMIT"] = os.getenv("OPT_POS_LIMIT", "10")
+    base_env["P1_VAR_WINDOW"] = str(params["ROLLING_WINDOW"])
+    base_env["P1_MEAN"] = os.getenv("OPT_GLOBAL_INT", "1250")
+    base_env["P1_SLOPE"] = os.getenv("OPT_GLOBAL_SLOPE", "0")
+    base_env["P1_TTE_TRANSLATION"] = os.getenv("OPT_GLOBAL_TTE_TRANSLATION", "0")
+    base_env["P1_Z_BUY"] = str(params["MR_Z_BUY"])
+    base_env["P1_Z_SELL"] = str(params["MR_Z_SELL"])
 
-    # Pass Optuna parameters to the trader via environment variables
-    for key, val in params.items():
-        base_env[key] = str(val)
-    
     day_pnls = []
     total_pnl = 0.0
 
@@ -75,7 +77,7 @@ def run_simulation(params: dict) -> dict | None:
             
             if not total_match:
                 # Fallback: Search for the specific product breakdown line if the summary row is missing
-                product_name = env.get("TEST_PRODUCT", "VEV_5500")
+                product_name = env.get("TEST_PRODUCT", OPT_PRODUCT)
                 total_match = re.search(rf"{product_name}\s+([\d,.\-]+)", stdout)
 
             if not total_match: 
@@ -100,7 +102,7 @@ def objective(trial):
 
     params = {
         "MR_Z_BUY":       round(trial.suggest_float("MR_Z_BUY", 1.0, 8.0) / STEP) * STEP,
-        "MR_Z_SELL":      round(trial.suggest_float("MR_Z_BUY", 1.0, 8.0) / STEP) * STEP,
+        "MR_Z_SELL":      round(trial.suggest_float("MR_Z_SELL", 1.0, 8.0) / STEP) * STEP,
         "ROLLING_WINDOW": round(trial.suggest_int("ROLLING_WINDOW", 10, 500))
         
     }

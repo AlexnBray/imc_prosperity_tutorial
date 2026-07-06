@@ -1,0 +1,3261 @@
+{
+  "days_tested": [
+    2,
+    3,
+    4
+  ],
+  "trials_per_study": 200,
+  "n_symbols": 50,
+  "results": [
+    {
+      "symbol": "GALAXY_SOUNDS_BLACK_HOLES",
+      "step_mr_best": {
+        "best_objective_score": 43648.034067949506,
+        "best_params": {
+          "var_window": 614,
+          "step_long_ticks": 578,
+          "step_short_ticks": 59,
+          "step_k_sd": 10.0,
+          "sigma_floor": 0.000879121405786216,
+          "z_buy": 3.1,
+          "z_sell": 4.1
+        },
+        "final_pnl": 56507.0,
+        "mean_day_pnl": 18835.666666666668,
+        "pnl_spread": 10172.0,
+        "pnl_std": 4478.276553417496,
+        "min_day_pnl": 14935.0,
+        "day_pnls": [
+          14935.0,
+          16465.0,
+          25107.0
+        ]
+      },
+      "ewma_mr_best": {
+        "best_objective_score": 38085.182603653775,
+        "best_params": {
+          "var_window": 730,
+          "alpha": 0.3462168723075432,
+          "z_buy": 3.5,
+          "z_sell": 4.2
+        },
+        "final_pnl": 43190.0,
+        "mean_day_pnl": 14396.666666666666,
+        "pnl_spread": 4100.0,
+        "pnl_std": 1674.6956605770363,
+        "min_day_pnl": 12385.0,
+        "day_pnls": [
+          16485.0,
+          14320.0,
+          12385.0
+        ]
+      },
+      "comparison": {
+        "better_by_optuna_score": "STEP_MR",
+        "delta_best_objective_score": 5562.851464295731,
+        "delta_final_pnl_best_trial": 13317.0
+      },
+      "proposed_clean_trader_pick": "STEP_MR",
+      "implement_step_params_env": {
+        "STEP_MR_VAR_WINDOW": "614",
+        "STEP_MR_STEP_LONG_TICKS": "578",
+        "STEP_MR_STEP_SHORT_TICKS": "59",
+        "STEP_MR_K_SD": "10.0",
+        "STEP_MR_SIGMA_FLOOR": "0.000879121405786216",
+        "STEP_MR_Z_BUY": "3.1",
+        "STEP_MR_Z_SELL": "4.1"
+      },
+      "implement_ewma_params_env": {
+        "EWMA_MR_VAR_WINDOW": "730",
+        "EWMA_MR_ALPHA": "0.3462168723075432",
+        "EWMA_MR_Z_BUY": "3.5",
+        "EWMA_MR_Z_SELL": "4.2"
+      }
+    },
+    {
+      "symbol": "GALAXY_SOUNDS_DARK_MATTER",
+      "step_mr_best": {
+        "best_objective_score": 36592.51661669952,
+        "best_params": {
+          "var_window": 377,
+          "step_long_ticks": 2128,
+          "step_short_ticks": 122,
+          "step_k_sd": 9.0,
+          "sigma_floor": 0.00012691838167870002,
+          "z_buy": 3.1,
+          "z_sell": 1.3
+        },
+        "final_pnl": 38581.0,
+        "mean_day_pnl": 12860.333333333334,
+        "pnl_spread": 1591.0,
+        "pnl_std": 662.4723055008078,
+        "min_day_pnl": 12157.0,
+        "day_pnls": [
+          13748.0,
+          12676.0,
+          12157.0
+        ]
+      },
+      "ewma_mr_best": {
+        "best_objective_score": 22735.54868321471,
+        "best_params": {
+          "var_window": 392,
+          "alpha": 0.07566078911819596,
+          "z_buy": 2.9000000000000004,
+          "z_sell": 3.5
+        },
+        "final_pnl": 29332.0,
+        "mean_day_pnl": 9777.333333333334,
+        "pnl_spread": 5276.0,
+        "pnl_std": 2200.752194642146,
+        "min_day_pnl": 6820.0,
+        "day_pnls": [
+          10416.0,
+          6820.0,
+          12096.0
+        ]
+      },
+      "comparison": {
+        "better_by_optuna_score": "STEP_MR",
+        "delta_best_objective_score": 13856.967933484808,
+        "delta_final_pnl_best_trial": 9249.0
+      },
+      "proposed_clean_trader_pick": "STEP_MR",
+      "implement_step_params_env": {
+        "STEP_MR_VAR_WINDOW": "377",
+        "STEP_MR_STEP_LONG_TICKS": "2128",
+        "STEP_MR_STEP_SHORT_TICKS": "122",
+        "STEP_MR_K_SD": "9.0",
+        "STEP_MR_SIGMA_FLOOR": "0.00012691838167870002",
+        "STEP_MR_Z_BUY": "3.1",
+        "STEP_MR_Z_SELL": "1.3"
+      },
+      "implement_ewma_params_env": {
+        "EWMA_MR_VAR_WINDOW": "392",
+        "EWMA_MR_ALPHA": "0.07566078911819596",
+        "EWMA_MR_Z_BUY": "2.9000000000000004",
+        "EWMA_MR_Z_SELL": "3.5"
+      }
+    },
+    {
+      "symbol": "GALAXY_SOUNDS_PLANETARY_RINGS",
+      "step_mr_best": {
+        "best_objective_score": 6945.117940214941,
+        "best_params": {
+          "var_window": 657,
+          "step_long_ticks": 1364,
+          "step_short_ticks": 74,
+          "step_k_sd": 8.25,
+          "sigma_floor": 0.0006755559586497287,
+          "z_buy": 4.4,
+          "z_sell": 4.4
+        },
+        "final_pnl": 21314.0,
+        "mean_day_pnl": 7104.666666666667,
+        "pnl_spread": 11508.0,
+        "pnl_std": 4768.136766308431,
+        "min_day_pnl": 775.0,
+        "day_pnls": [
+          8256.0,
+          775.0,
+          12283.0
+        ]
+      },
+      "ewma_mr_best": {
+        "best_objective_score": 13146.421075906008,
+        "best_params": {
+          "var_window": 172,
+          "alpha": 0.10331020612132799,
+          "z_buy": 3.3000000000000003,
+          "z_sell": 4.0
+        },
+        "final_pnl": 35171.0,
+        "mean_day_pnl": 11723.666666666666,
+        "pnl_spread": 17221.0,
+        "pnl_std": 8005.964873489987,
+        "min_day_pnl": 405.0,
+        "day_pnls": [
+          17140.0,
+          405.0,
+          17626.0
+        ]
+      },
+      "comparison": {
+        "better_by_optuna_score": "EWMA_MR",
+        "delta_best_objective_score": -6201.303135691067,
+        "delta_final_pnl_best_trial": -13857.0
+      },
+      "proposed_clean_trader_pick": "EWMA_MR",
+      "implement_step_params_env": {
+        "STEP_MR_VAR_WINDOW": "657",
+        "STEP_MR_STEP_LONG_TICKS": "1364",
+        "STEP_MR_STEP_SHORT_TICKS": "74",
+        "STEP_MR_K_SD": "8.25",
+        "STEP_MR_SIGMA_FLOOR": "0.0006755559586497287",
+        "STEP_MR_Z_BUY": "4.4",
+        "STEP_MR_Z_SELL": "4.4"
+      },
+      "implement_ewma_params_env": {
+        "EWMA_MR_VAR_WINDOW": "172",
+        "EWMA_MR_ALPHA": "0.10331020612132799",
+        "EWMA_MR_Z_BUY": "3.3000000000000003",
+        "EWMA_MR_Z_SELL": "4.0"
+      }
+    },
+    {
+      "symbol": "GALAXY_SOUNDS_SOLAR_FLAMES",
+      "step_mr_best": {
+        "best_objective_score": 22485.516532266178,
+        "best_params": {
+          "var_window": 326,
+          "step_long_ticks": 1872,
+          "step_short_ticks": 65,
+          "step_k_sd": 4.0,
+          "sigma_floor": 0.03157734084987153,
+          "z_buy": 2.3,
+          "z_sell": 2.6
+        },
+        "final_pnl": 31632.0,
+        "mean_day_pnl": 10544.0,
+        "pnl_spread": 7213.0,
+        "pnl_std": 3222.4724462230342,
+        "min_day_pnl": 6012.0,
+        "day_pnls": [
+          12395.0,
+          6012.0,
+          13225.0
+        ]
+      },
+      "ewma_mr_best": {
+        "best_objective_score": 8449.191351276591,
+        "best_params": {
+          "var_window": 684,
+          "alpha": 0.164996234077335,
+          "z_buy": 3.0,
+          "z_sell": 3.7
+        },
+        "final_pnl": 13060.0,
+        "mean_day_pnl": 4353.333333333333,
+        "pnl_spread": 3665.0,
+        "pnl_std": 1576.3477478723476,
+        "min_day_pnl": 2170.0,
+        "day_pnls": [
+          5835.0,
+          5055.0,
+          2170.0
+        ]
+      },
+      "comparison": {
+        "better_by_optuna_score": "STEP_MR",
+        "delta_best_objective_score": 14036.325180989586,
+        "delta_final_pnl_best_trial": 18572.0
+      },
+      "proposed_clean_trader_pick": "STEP_MR",
+      "implement_step_params_env": {
+        "STEP_MR_VAR_WINDOW": "326",
+        "STEP_MR_STEP_LONG_TICKS": "1872",
+        "STEP_MR_STEP_SHORT_TICKS": "65",
+        "STEP_MR_K_SD": "4.0",
+        "STEP_MR_SIGMA_FLOOR": "0.03157734084987153",
+        "STEP_MR_Z_BUY": "2.3",
+        "STEP_MR_Z_SELL": "2.6"
+      },
+      "implement_ewma_params_env": {
+        "EWMA_MR_VAR_WINDOW": "684",
+        "EWMA_MR_ALPHA": "0.164996234077335",
+        "EWMA_MR_Z_BUY": "3.0",
+        "EWMA_MR_Z_SELL": "3.7"
+      }
+    },
+    {
+      "symbol": "GALAXY_SOUNDS_SOLAR_WINDS",
+      "step_mr_best": {
+        "best_objective_score": 12828.802020352485,
+        "best_params": {
+          "var_window": 467,
+          "step_long_ticks": 940,
+          "step_short_ticks": 185,
+          "step_k_sd": 10.5,
+          "sigma_floor": 0.0004993010836040918,
+          "z_buy": 2.4000000000000004,
+          "z_sell": 3.7
+        },
+        "final_pnl": 19433.0,
+        "mean_day_pnl": 6477.666666666667,
+        "pnl_spread": 5248.0,
+        "pnl_std": 2260.329966079191,
+        "min_day_pnl": 4363.0,
+        "day_pnls": [
+          5459.0,
+          9611.0,
+          4363.0
+        ]
+      },
+      "ewma_mr_best": {
+        "best_objective_score": 14520.909488305053,
+        "best_params": {
+          "var_window": 213,
+          "alpha": 0.010837107636863404,
+          "z_buy": 3.5,
+          "z_sell": 3.8000000000000003
+        },
+        "final_pnl": 28198.0,
+        "mean_day_pnl": 9399.333333333334,
+        "pnl_spread": 10949.0,
+        "pnl_std": 4546.817519491579,
+        "min_day_pnl": 3336.0,
+        "day_pnls": [
+          10577.0,
+          14285.0,
+          3336.0
+        ]
+      },
+      "comparison": {
+        "better_by_optuna_score": "EWMA_MR",
+        "delta_best_objective_score": -1692.1074679525682,
+        "delta_final_pnl_best_trial": -8765.0
+      },
+      "proposed_clean_trader_pick": "EWMA_MR",
+      "implement_step_params_env": {
+        "STEP_MR_VAR_WINDOW": "467",
+        "STEP_MR_STEP_LONG_TICKS": "940",
+        "STEP_MR_STEP_SHORT_TICKS": "185",
+        "STEP_MR_K_SD": "10.5",
+        "STEP_MR_SIGMA_FLOOR": "0.0004993010836040918",
+        "STEP_MR_Z_BUY": "2.4000000000000004",
+        "STEP_MR_Z_SELL": "3.7"
+      },
+      "implement_ewma_params_env": {
+        "EWMA_MR_VAR_WINDOW": "213",
+        "EWMA_MR_ALPHA": "0.010837107636863404",
+        "EWMA_MR_Z_BUY": "3.5",
+        "EWMA_MR_Z_SELL": "3.8000000000000003"
+      }
+    },
+    {
+      "symbol": "MICROCHIP_CIRCLE",
+      "step_mr_best": {
+        "best_objective_score": 13170.441791295085,
+        "best_params": {
+          "var_window": 164,
+          "step_long_ticks": 1163,
+          "step_short_ticks": 26,
+          "step_k_sd": 2.5,
+          "sigma_floor": 0.0011087600850205842,
+          "z_buy": 1.6,
+          "z_sell": 1.3
+        },
+        "final_pnl": 18691.0,
+        "mean_day_pnl": 6230.333333333333,
+        "pnl_spread": 4417.0,
+        "pnl_std": 1839.2636811748578,
+        "min_day_pnl": 4278.0,
+        "day_pnls": [
+          5718.0,
+          4278.0,
+          8695.0
+        ]
+      },
+      "ewma_mr_best": {
+        "best_objective_score": 7369.984741638432,
+        "best_params": {
+          "var_window": 554,
+          "alpha": 0.010170593192542838,
+          "z_buy": 1.3,
+          "z_sell": 1.5
+        },
+        "final_pnl": 16053.0,
+        "mean_day_pnl": 5351.0,
+        "pnl_spread": 6903.0,
+        "pnl_std": 2966.69209726928,
+        "min_day_pnl": 1244.0,
+        "day_pnls": [
+          1244.0,
+          8147.0,
+          6662.0
+        ]
+      },
+      "comparison": {
+        "better_by_optuna_score": "STEP_MR",
+        "delta_best_objective_score": 5800.457049656653,
+        "delta_final_pnl_best_trial": 2638.0
+      },
+      "proposed_clean_trader_pick": "STEP_MR",
+      "implement_step_params_env": {
+        "STEP_MR_VAR_WINDOW": "164",
+        "STEP_MR_STEP_LONG_TICKS": "1163",
+        "STEP_MR_STEP_SHORT_TICKS": "26",
+        "STEP_MR_K_SD": "2.5",
+        "STEP_MR_SIGMA_FLOOR": "0.0011087600850205842",
+        "STEP_MR_Z_BUY": "1.6",
+        "STEP_MR_Z_SELL": "1.3"
+      },
+      "implement_ewma_params_env": {
+        "EWMA_MR_VAR_WINDOW": "554",
+        "EWMA_MR_ALPHA": "0.010170593192542838",
+        "EWMA_MR_Z_BUY": "1.3",
+        "EWMA_MR_Z_SELL": "1.5"
+      }
+    },
+    {
+      "symbol": "MICROCHIP_OVAL",
+      "step_mr_best": {
+        "best_objective_score": 66329.08193799447,
+        "best_params": {
+          "var_window": 716,
+          "step_long_ticks": 879,
+          "step_short_ticks": 116,
+          "step_k_sd": 6.0,
+          "sigma_floor": 0.00016907341255436494,
+          "z_buy": 3.2,
+          "z_sell": 1.3
+        },
+        "final_pnl": 77558.0,
+        "mean_day_pnl": 25852.666666666668,
+        "pnl_spread": 8864.0,
+        "pnl_std": 3941.530103342553,
+        "min_day_pnl": 20316.0,
+        "day_pnls": [
+          29180.0,
+          20316.0,
+          28062.0
+        ]
+      },
+      "ewma_mr_best": {
+        "best_objective_score": 39388.324526366254,
+        "best_params": {
+          "var_window": 56,
+          "alpha": 0.06286897262649598,
+          "z_buy": 3.0,
+          "z_sell": 1.1
+        },
+        "final_pnl": 52047.0,
+        "mean_day_pnl": 17349.0,
+        "pnl_spread": 10036.0,
+        "pnl_std": 4371.125789389579,
+        "min_day_pnl": 11254.0,
+        "day_pnls": [
+          21290.0,
+          11254.0,
+          19503.0
+        ]
+      },
+      "comparison": {
+        "better_by_optuna_score": "STEP_MR",
+        "delta_best_objective_score": 26940.75741162822,
+        "delta_final_pnl_best_trial": 25511.0
+      },
+      "proposed_clean_trader_pick": "STEP_MR",
+      "implement_step_params_env": {
+        "STEP_MR_VAR_WINDOW": "716",
+        "STEP_MR_STEP_LONG_TICKS": "879",
+        "STEP_MR_STEP_SHORT_TICKS": "116",
+        "STEP_MR_K_SD": "6.0",
+        "STEP_MR_SIGMA_FLOOR": "0.00016907341255436494",
+        "STEP_MR_Z_BUY": "3.2",
+        "STEP_MR_Z_SELL": "1.3"
+      },
+      "implement_ewma_params_env": {
+        "EWMA_MR_VAR_WINDOW": "56",
+        "EWMA_MR_ALPHA": "0.06286897262649598",
+        "EWMA_MR_Z_BUY": "3.0",
+        "EWMA_MR_Z_SELL": "1.1"
+      }
+    },
+    {
+      "symbol": "MICROCHIP_RECTANGLE",
+      "step_mr_best": {
+        "best_objective_score": 49108.71059962698,
+        "best_params": {
+          "var_window": 669,
+          "step_long_ticks": 1746,
+          "step_short_ticks": 156,
+          "step_k_sd": 6.5,
+          "sigma_floor": 0.003124767214055634,
+          "z_buy": 1.4,
+          "z_sell": 2.2
+        },
+        "final_pnl": 56191.0,
+        "mean_day_pnl": 18730.333333333332,
+        "pnl_spread": 5678.0,
+        "pnl_std": 2340.482333955024,
+        "min_day_pnl": 16120.0,
+        "day_pnls": [
+          16120.0,
+          18273.0,
+          21798.0
+        ]
+      },
+      "ewma_mr_best": {
+        "best_objective_score": 26521.858238340636,
+        "best_params": {
+          "var_window": 611,
+          "alpha": 0.09759662318999503,
+          "z_buy": 3.0,
+          "z_sell": 2.8
+        },
+        "final_pnl": 38969.0,
+        "mean_day_pnl": 12989.666666666666,
+        "pnl_spread": 9728.0,
+        "pnl_std": 4531.902936098943,
+        "min_day_pnl": 6582.0,
+        "day_pnls": [
+          6582.0,
+          16077.0,
+          16310.0
+        ]
+      },
+      "comparison": {
+        "better_by_optuna_score": "STEP_MR",
+        "delta_best_objective_score": 22586.852361286346,
+        "delta_final_pnl_best_trial": 17222.0
+      },
+      "proposed_clean_trader_pick": "STEP_MR",
+      "implement_step_params_env": {
+        "STEP_MR_VAR_WINDOW": "669",
+        "STEP_MR_STEP_LONG_TICKS": "1746",
+        "STEP_MR_STEP_SHORT_TICKS": "156",
+        "STEP_MR_K_SD": "6.5",
+        "STEP_MR_SIGMA_FLOOR": "0.003124767214055634",
+        "STEP_MR_Z_BUY": "1.4",
+        "STEP_MR_Z_SELL": "2.2"
+      },
+      "implement_ewma_params_env": {
+        "EWMA_MR_VAR_WINDOW": "611",
+        "EWMA_MR_ALPHA": "0.09759662318999503",
+        "EWMA_MR_Z_BUY": "3.0",
+        "EWMA_MR_Z_SELL": "2.8"
+      }
+    },
+    {
+      "symbol": "MICROCHIP_SQUARE",
+      "step_mr_best": {
+        "best_objective_score": 71608.03135060155,
+        "best_params": {
+          "var_window": 370,
+          "step_long_ticks": 1085,
+          "step_short_ticks": 87,
+          "step_k_sd": 8.5,
+          "sigma_floor": 0.0027231411304731077,
+          "z_buy": 3.9000000000000004,
+          "z_sell": 3.9000000000000004
+        },
+        "final_pnl": 93840.0,
+        "mean_day_pnl": 31280.0,
+        "pnl_spread": 17841.0,
+        "pnl_std": 7318.281082330741,
+        "min_day_pnl": 21856.0,
+        "day_pnls": [
+          39697.0,
+          32287.0,
+          21856.0
+        ]
+      },
+      "ewma_mr_best": {
+        "best_objective_score": 49215.98832025219,
+        "best_params": {
+          "var_window": 493,
+          "alpha": 0.028201944717906026,
+          "z_buy": 2.0,
+          "z_sell": 2.8
+        },
+        "final_pnl": 76387.0,
+        "mean_day_pnl": 25462.333333333332,
+        "pnl_spread": 21825.0,
+        "pnl_std": 8910.01946624635,
+        "min_day_pnl": 14552.0,
+        "day_pnls": [
+          25458.0,
+          36377.0,
+          14552.0
+        ]
+      },
+      "comparison": {
+        "better_by_optuna_score": "STEP_MR",
+        "delta_best_objective_score": 22392.043030349363,
+        "delta_final_pnl_best_trial": 17453.0
+      },
+      "proposed_clean_trader_pick": "STEP_MR",
+      "implement_step_params_env": {
+        "STEP_MR_VAR_WINDOW": "370",
+        "STEP_MR_STEP_LONG_TICKS": "1085",
+        "STEP_MR_STEP_SHORT_TICKS": "87",
+        "STEP_MR_K_SD": "8.5",
+        "STEP_MR_SIGMA_FLOOR": "0.0027231411304731077",
+        "STEP_MR_Z_BUY": "3.9000000000000004",
+        "STEP_MR_Z_SELL": "3.9000000000000004"
+      },
+      "implement_ewma_params_env": {
+        "EWMA_MR_VAR_WINDOW": "493",
+        "EWMA_MR_ALPHA": "0.028201944717906026",
+        "EWMA_MR_Z_BUY": "2.0",
+        "EWMA_MR_Z_SELL": "2.8"
+      }
+    },
+    {
+      "symbol": "MICROCHIP_TRIANGLE",
+      "step_mr_best": {
+        "best_objective_score": 83013.56629950981,
+        "best_params": {
+          "var_window": 320,
+          "step_long_ticks": 1492,
+          "step_short_ticks": 160,
+          "step_k_sd": 7.25,
+          "sigma_floor": 0.00029639826946046866,
+          "z_buy": 3.5,
+          "z_sell": 1.6
+        },
+        "final_pnl": 96898.0,
+        "mean_day_pnl": 32299.333333333332,
+        "pnl_spread": 11126.0,
+        "pnl_std": 4597.389500816982,
+        "min_day_pnl": 26234.0,
+        "day_pnls": [
+          37360.0,
+          26234.0,
+          33304.0
+        ]
+      },
+      "ewma_mr_best": {
+        "best_objective_score": 84014.49574258806,
+        "best_params": {
+          "var_window": 744,
+          "alpha": 0.010302662342055636,
+          "z_buy": 2.5,
+          "z_sell": 2.4000000000000004
+        },
+        "final_pnl": 87350.0,
+        "mean_day_pnl": 29116.666666666668,
+        "pnl_spread": 2679.0,
+        "pnl_std": 1094.17376235323,
+        "min_day_pnl": 27800.0,
+        "day_pnls": [
+          29071.0,
+          30479.0,
+          27800.0
+        ]
+      },
+      "comparison": {
+        "better_by_optuna_score": "EWMA_MR",
+        "delta_best_objective_score": -1000.9294430782465,
+        "delta_final_pnl_best_trial": 9548.0
+      },
+      "proposed_clean_trader_pick": "EWMA_MR",
+      "implement_step_params_env": {
+        "STEP_MR_VAR_WINDOW": "320",
+        "STEP_MR_STEP_LONG_TICKS": "1492",
+        "STEP_MR_STEP_SHORT_TICKS": "160",
+        "STEP_MR_K_SD": "7.25",
+        "STEP_MR_SIGMA_FLOOR": "0.00029639826946046866",
+        "STEP_MR_Z_BUY": "3.5",
+        "STEP_MR_Z_SELL": "1.6"
+      },
+      "implement_ewma_params_env": {
+        "EWMA_MR_VAR_WINDOW": "744",
+        "EWMA_MR_ALPHA": "0.010302662342055636",
+        "EWMA_MR_Z_BUY": "2.5",
+        "EWMA_MR_Z_SELL": "2.4000000000000004"
+      }
+    },
+    {
+      "symbol": "OXYGEN_SHAKE_CHOCOLATE",
+      "step_mr_best": {
+        "best_objective_score": 25363.883213452445,
+        "best_params": {
+          "var_window": 308,
+          "step_long_ticks": 464,
+          "step_short_ticks": 126,
+          "step_k_sd": 4.25,
+          "sigma_floor": 0.0002817382938583513,
+          "z_buy": 2.7,
+          "z_sell": 3.8000000000000003
+        },
+        "final_pnl": 27265.0,
+        "mean_day_pnl": 9088.333333333334,
+        "pnl_spread": 1513.0,
+        "pnl_std": 646.8613109125909,
+        "min_day_pnl": 8196.0,
+        "day_pnls": [
+          9360.0,
+          9709.0,
+          8196.0
+        ]
+      },
+      "ewma_mr_best": {
+        "best_objective_score": 28496.559402759427,
+        "best_params": {
+          "var_window": 75,
+          "alpha": 0.019411946720480168,
+          "z_buy": 2.4000000000000004,
+          "z_sell": 4.0
+        },
+        "final_pnl": 33637.0,
+        "mean_day_pnl": 11212.333333333334,
+        "pnl_spread": 4030.0,
+        "pnl_std": 1850.734328734288,
+        "min_day_pnl": 8598.0,
+        "day_pnls": [
+          12628.0,
+          12411.0,
+          8598.0
+        ]
+      },
+      "comparison": {
+        "better_by_optuna_score": "EWMA_MR",
+        "delta_best_objective_score": -3132.6761893069815,
+        "delta_final_pnl_best_trial": -6372.0
+      },
+      "proposed_clean_trader_pick": "EWMA_MR",
+      "implement_step_params_env": {
+        "STEP_MR_VAR_WINDOW": "308",
+        "STEP_MR_STEP_LONG_TICKS": "464",
+        "STEP_MR_STEP_SHORT_TICKS": "126",
+        "STEP_MR_K_SD": "4.25",
+        "STEP_MR_SIGMA_FLOOR": "0.0002817382938583513",
+        "STEP_MR_Z_BUY": "2.7",
+        "STEP_MR_Z_SELL": "3.8000000000000003"
+      },
+      "implement_ewma_params_env": {
+        "EWMA_MR_VAR_WINDOW": "75",
+        "EWMA_MR_ALPHA": "0.019411946720480168",
+        "EWMA_MR_Z_BUY": "2.4000000000000004",
+        "EWMA_MR_Z_SELL": "4.0"
+      }
+    },
+    {
+      "symbol": "OXYGEN_SHAKE_EVENING_BREATH",
+      "step_mr_best": {
+        "best_objective_score": 24668.62103241084,
+        "best_params": {
+          "var_window": 166,
+          "step_long_ticks": 1089,
+          "step_short_ticks": 174,
+          "step_k_sd": 3.75,
+          "sigma_floor": 0.0024422086388236845,
+          "z_buy": 1.8,
+          "z_sell": 1.6
+        },
+        "final_pnl": 35294.0,
+        "mean_day_pnl": 11764.666666666666,
+        "pnl_spread": 8502.0,
+        "pnl_std": 3538.9649459819307,
+        "min_day_pnl": 8002.0,
+        "day_pnls": [
+          16504.0,
+          8002.0,
+          10788.0
+        ]
+      },
+      "ewma_mr_best": {
+        "best_objective_score": 7104.696156719142,
+        "best_params": {
+          "var_window": 604,
+          "alpha": 0.008240638713454028,
+          "z_buy": 1.3,
+          "z_sell": 1.7000000000000002
+        },
+        "final_pnl": 13736.0,
+        "mean_day_pnl": 4578.666666666667,
+        "pnl_spread": 5290.0,
+        "pnl_std": 2235.5064054680965,
+        "min_day_pnl": 2342.0,
+        "day_pnls": [
+          7632.0,
+          2342.0,
+          3762.0
+        ]
+      },
+      "comparison": {
+        "better_by_optuna_score": "STEP_MR",
+        "delta_best_objective_score": 17563.924875691697,
+        "delta_final_pnl_best_trial": 21558.0
+      },
+      "proposed_clean_trader_pick": "STEP_MR",
+      "implement_step_params_env": {
+        "STEP_MR_VAR_WINDOW": "166",
+        "STEP_MR_STEP_LONG_TICKS": "1089",
+        "STEP_MR_STEP_SHORT_TICKS": "174",
+        "STEP_MR_K_SD": "3.75",
+        "STEP_MR_SIGMA_FLOOR": "0.0024422086388236845",
+        "STEP_MR_Z_BUY": "1.8",
+        "STEP_MR_Z_SELL": "1.6"
+      },
+      "implement_ewma_params_env": {
+        "EWMA_MR_VAR_WINDOW": "604",
+        "EWMA_MR_ALPHA": "0.008240638713454028",
+        "EWMA_MR_Z_BUY": "1.3",
+        "EWMA_MR_Z_SELL": "1.7000000000000002"
+      }
+    },
+    {
+      "symbol": "OXYGEN_SHAKE_GARLIC",
+      "step_mr_best": {
+        "best_objective_score": 49475.028083193436,
+        "best_params": {
+          "var_window": 612,
+          "step_long_ticks": 445,
+          "step_short_ticks": 95,
+          "step_k_sd": 11.75,
+          "sigma_floor": 0.008929576621018318,
+          "z_buy": 2.7,
+          "z_sell": 3.8000000000000003
+        },
+        "final_pnl": 55638.0,
+        "mean_day_pnl": 18546.0,
+        "pnl_spread": 4812.0,
+        "pnl_std": 2251.6198613442725,
+        "min_day_pnl": 16918.0,
+        "day_pnls": [
+          16990.0,
+          16918.0,
+          21730.0
+        ]
+      },
+      "ewma_mr_best": {
+        "best_objective_score": 42808.83419126477,
+        "best_params": {
+          "var_window": 421,
+          "alpha": 0.015078853151869702,
+          "z_buy": 3.5,
+          "z_sell": 4.1
+        },
+        "final_pnl": 55189.0,
+        "mean_day_pnl": 18396.333333333332,
+        "pnl_spread": 9924.0,
+        "pnl_std": 4093.609681225388,
+        "min_day_pnl": 13020.0,
+        "day_pnls": [
+          19225.0,
+          13020.0,
+          22944.0
+        ]
+      },
+      "comparison": {
+        "better_by_optuna_score": "STEP_MR",
+        "delta_best_objective_score": 6666.1938919286695,
+        "delta_final_pnl_best_trial": 449.0
+      },
+      "proposed_clean_trader_pick": "STEP_MR",
+      "implement_step_params_env": {
+        "STEP_MR_VAR_WINDOW": "612",
+        "STEP_MR_STEP_LONG_TICKS": "445",
+        "STEP_MR_STEP_SHORT_TICKS": "95",
+        "STEP_MR_K_SD": "11.75",
+        "STEP_MR_SIGMA_FLOOR": "0.008929576621018318",
+        "STEP_MR_Z_BUY": "2.7",
+        "STEP_MR_Z_SELL": "3.8000000000000003"
+      },
+      "implement_ewma_params_env": {
+        "EWMA_MR_VAR_WINDOW": "421",
+        "EWMA_MR_ALPHA": "0.015078853151869702",
+        "EWMA_MR_Z_BUY": "3.5",
+        "EWMA_MR_Z_SELL": "4.1"
+      }
+    },
+    {
+      "symbol": "OXYGEN_SHAKE_MINT",
+      "step_mr_best": {
+        "best_objective_score": 22621.0672461318,
+        "best_params": {
+          "var_window": 691,
+          "step_long_ticks": 977,
+          "step_short_ticks": 193,
+          "step_k_sd": 8.5,
+          "sigma_floor": 0.018979769626456033,
+          "z_buy": 2.3,
+          "z_sell": 3.6
+        },
+        "final_pnl": 29818.0,
+        "mean_day_pnl": 9939.333333333334,
+        "pnl_spread": 5778.0,
+        "pnl_std": 2364.8879231136702,
+        "min_day_pnl": 6931.0,
+        "day_pnls": [
+          10178.0,
+          6931.0,
+          12709.0
+        ]
+      },
+      "ewma_mr_best": {
+        "best_objective_score": 35360.09337696829,
+        "best_params": {
+          "var_window": 711,
+          "alpha": 0.008148804815626128,
+          "z_buy": 3.1,
+          "z_sell": 3.1
+        },
+        "final_pnl": 49462.0,
+        "mean_day_pnl": 16487.333333333332,
+        "pnl_spread": 11252.0,
+        "pnl_std": 4749.844371719515,
+        "min_day_pnl": 10007.0,
+        "day_pnls": [
+          21259.0,
+          18196.0,
+          10007.0
+        ]
+      },
+      "comparison": {
+        "better_by_optuna_score": "EWMA_MR",
+        "delta_best_objective_score": -12739.02613083649,
+        "delta_final_pnl_best_trial": -19644.0
+      },
+      "proposed_clean_trader_pick": "EWMA_MR",
+      "implement_step_params_env": {
+        "STEP_MR_VAR_WINDOW": "691",
+        "STEP_MR_STEP_LONG_TICKS": "977",
+        "STEP_MR_STEP_SHORT_TICKS": "193",
+        "STEP_MR_K_SD": "8.5",
+        "STEP_MR_SIGMA_FLOOR": "0.018979769626456033",
+        "STEP_MR_Z_BUY": "2.3",
+        "STEP_MR_Z_SELL": "3.6"
+      },
+      "implement_ewma_params_env": {
+        "EWMA_MR_VAR_WINDOW": "711",
+        "EWMA_MR_ALPHA": "0.008148804815626128",
+        "EWMA_MR_Z_BUY": "3.1",
+        "EWMA_MR_Z_SELL": "3.1"
+      }
+    },
+    {
+      "symbol": "OXYGEN_SHAKE_MORNING_BREATH",
+      "step_mr_best": {
+        "best_objective_score": 9518.721565822534,
+        "best_params": {
+          "var_window": 729,
+          "step_long_ticks": 488,
+          "step_short_ticks": 78,
+          "step_k_sd": 8.5,
+          "sigma_floor": 0.005945871773934723,
+          "z_buy": 4.5,
+          "z_sell": 3.8000000000000003
+        },
+        "final_pnl": 18773.0,
+        "mean_day_pnl": 6257.666666666667,
+        "pnl_spread": 7275.0,
+        "pnl_std": 3298.797390295776,
+        "min_day_pnl": 1605.0,
+        "day_pnls": [
+          8288.0,
+          8880.0,
+          1605.0
+        ]
+      },
+      "ewma_mr_best": {
+        "best_objective_score": 6554.179545031395,
+        "best_params": {
+          "var_window": 652,
+          "alpha": 0.0131856255541053,
+          "z_buy": 3.7,
+          "z_sell": 3.0
+        },
+        "final_pnl": 9501.0,
+        "mean_day_pnl": 3167.0,
+        "pnl_spread": 2367.0,
+        "pnl_std": 966.3674249476749,
+        "min_day_pnl": 1990.0,
+        "day_pnls": [
+          1990.0,
+          3154.0,
+          4357.0
+        ]
+      },
+      "comparison": {
+        "better_by_optuna_score": "STEP_MR",
+        "delta_best_objective_score": 2964.5420207911393,
+        "delta_final_pnl_best_trial": 9272.0
+      },
+      "proposed_clean_trader_pick": "STEP_MR",
+      "implement_step_params_env": {
+        "STEP_MR_VAR_WINDOW": "729",
+        "STEP_MR_STEP_LONG_TICKS": "488",
+        "STEP_MR_STEP_SHORT_TICKS": "78",
+        "STEP_MR_K_SD": "8.5",
+        "STEP_MR_SIGMA_FLOOR": "0.005945871773934723",
+        "STEP_MR_Z_BUY": "4.5",
+        "STEP_MR_Z_SELL": "3.8000000000000003"
+      },
+      "implement_ewma_params_env": {
+        "EWMA_MR_VAR_WINDOW": "652",
+        "EWMA_MR_ALPHA": "0.0131856255541053",
+        "EWMA_MR_Z_BUY": "3.7",
+        "EWMA_MR_Z_SELL": "3.0"
+      }
+    },
+    {
+      "symbol": "PANEL_1X2",
+      "step_mr_best": {
+        "best_objective_score": 28355.56154058428,
+        "best_params": {
+          "var_window": 445,
+          "step_long_ticks": 324,
+          "step_short_ticks": 41,
+          "step_k_sd": 8.5,
+          "sigma_floor": 0.001963984083147008,
+          "z_buy": 2.6,
+          "z_sell": 3.9000000000000004
+        },
+        "final_pnl": 30056.0,
+        "mean_day_pnl": 10018.666666666666,
+        "pnl_spread": 1352.0,
+        "pnl_std": 580.7307656928658,
+        "min_day_pnl": 9215.0,
+        "day_pnls": [
+          9215.0,
+          10274.0,
+          10567.0
+        ]
+      },
+      "ewma_mr_best": {
+        "best_objective_score": 25849.478442465122,
+        "best_params": {
+          "var_window": 301,
+          "alpha": 0.013770847784772826,
+          "z_buy": 3.1,
+          "z_sell": 3.2
+        },
+        "final_pnl": 35125.0,
+        "mean_day_pnl": 11708.333333333334,
+        "pnl_spread": 7372.0,
+        "pnl_std": 3172.535929224793,
+        "min_day_pnl": 8732.0,
+        "day_pnls": [
+          10289.0,
+          8732.0,
+          16104.0
+        ]
+      },
+      "comparison": {
+        "better_by_optuna_score": "STEP_MR",
+        "delta_best_objective_score": 2506.0830981191575,
+        "delta_final_pnl_best_trial": -5069.0
+      },
+      "proposed_clean_trader_pick": "STEP_MR",
+      "implement_step_params_env": {
+        "STEP_MR_VAR_WINDOW": "445",
+        "STEP_MR_STEP_LONG_TICKS": "324",
+        "STEP_MR_STEP_SHORT_TICKS": "41",
+        "STEP_MR_K_SD": "8.5",
+        "STEP_MR_SIGMA_FLOOR": "0.001963984083147008",
+        "STEP_MR_Z_BUY": "2.6",
+        "STEP_MR_Z_SELL": "3.9000000000000004"
+      },
+      "implement_ewma_params_env": {
+        "EWMA_MR_VAR_WINDOW": "301",
+        "EWMA_MR_ALPHA": "0.013770847784772826",
+        "EWMA_MR_Z_BUY": "3.1",
+        "EWMA_MR_Z_SELL": "3.2"
+      }
+    },
+    {
+      "symbol": "PANEL_1X4",
+      "step_mr_best": {
+        "best_objective_score": 12526.993771778913,
+        "best_params": {
+          "var_window": 419,
+          "step_long_ticks": 2124,
+          "step_short_ticks": 123,
+          "step_k_sd": 4.75,
+          "sigma_floor": 0.0009159518720085443,
+          "z_buy": 4.4,
+          "z_sell": 3.0
+        },
+        "final_pnl": 17782.0,
+        "mean_day_pnl": 5927.333333333333,
+        "pnl_spread": 4221.0,
+        "pnl_std": 1723.3437137018127,
+        "min_day_pnl": 3802.0,
+        "day_pnls": [
+          8023.0,
+          3802.0,
+          5957.0
+        ]
+      },
+      "ewma_mr_best": {
+        "best_objective_score": -8927.920498186757,
+        "best_params": {
+          "var_window": 347,
+          "alpha": 0.06333339144127424,
+          "z_buy": 3.8000000000000003,
+          "z_sell": 2.8
+        },
+        "final_pnl": -6516.0,
+        "mean_day_pnl": -2172.0,
+        "pnl_spread": 979.0,
+        "pnl_std": 399.95083031126046,
+        "min_day_pnl": -2651.0,
+        "day_pnls": [
+          -1672.0,
+          -2193.0,
+          -2651.0
+        ]
+      },
+      "comparison": {
+        "better_by_optuna_score": "STEP_MR",
+        "delta_best_objective_score": 21454.91426996567,
+        "delta_final_pnl_best_trial": 24298.0
+      },
+      "proposed_clean_trader_pick": "STEP_MR",
+      "implement_step_params_env": {
+        "STEP_MR_VAR_WINDOW": "419",
+        "STEP_MR_STEP_LONG_TICKS": "2124",
+        "STEP_MR_STEP_SHORT_TICKS": "123",
+        "STEP_MR_K_SD": "4.75",
+        "STEP_MR_SIGMA_FLOOR": "0.0009159518720085443",
+        "STEP_MR_Z_BUY": "4.4",
+        "STEP_MR_Z_SELL": "3.0"
+      },
+      "implement_ewma_params_env": {
+        "EWMA_MR_VAR_WINDOW": "347",
+        "EWMA_MR_ALPHA": "0.06333339144127424",
+        "EWMA_MR_Z_BUY": "3.8000000000000003",
+        "EWMA_MR_Z_SELL": "2.8"
+      }
+    },
+    {
+      "symbol": "PANEL_2X2",
+      "step_mr_best": {
+        "best_objective_score": 28650.23196112667,
+        "best_params": {
+          "var_window": 490,
+          "step_long_ticks": 651,
+          "step_short_ticks": 120,
+          "step_k_sd": 8.5,
+          "sigma_floor": 0.0013764540605846847,
+          "z_buy": 1.7000000000000002,
+          "z_sell": 3.0
+        },
+        "final_pnl": 34985.0,
+        "mean_day_pnl": 11661.666666666666,
+        "pnl_spread": 5072.0,
+        "pnl_std": 2104.613398122219,
+        "min_day_pnl": 9392.0,
+        "day_pnls": [
+          14464.0,
+          9392.0,
+          11129.0
+        ]
+      },
+      "ewma_mr_best": {
+        "best_objective_score": 24183.86066639902,
+        "best_params": {
+          "var_window": 418,
+          "alpha": 0.0104982168142171,
+          "z_buy": 2.4000000000000004,
+          "z_sell": 3.3000000000000003
+        },
+        "final_pnl": 29748.0,
+        "mean_day_pnl": 9916.0,
+        "pnl_spread": 4469.0,
+        "pnl_std": 1825.2322226683011,
+        "min_day_pnl": 7719.0,
+        "day_pnls": [
+          12188.0,
+          9841.0,
+          7719.0
+        ]
+      },
+      "comparison": {
+        "better_by_optuna_score": "STEP_MR",
+        "delta_best_objective_score": 4466.371294727647,
+        "delta_final_pnl_best_trial": 5237.0
+      },
+      "proposed_clean_trader_pick": "STEP_MR",
+      "implement_step_params_env": {
+        "STEP_MR_VAR_WINDOW": "490",
+        "STEP_MR_STEP_LONG_TICKS": "651",
+        "STEP_MR_STEP_SHORT_TICKS": "120",
+        "STEP_MR_K_SD": "8.5",
+        "STEP_MR_SIGMA_FLOOR": "0.0013764540605846847",
+        "STEP_MR_Z_BUY": "1.7000000000000002",
+        "STEP_MR_Z_SELL": "3.0"
+      },
+      "implement_ewma_params_env": {
+        "EWMA_MR_VAR_WINDOW": "418",
+        "EWMA_MR_ALPHA": "0.0104982168142171",
+        "EWMA_MR_Z_BUY": "2.4000000000000004",
+        "EWMA_MR_Z_SELL": "3.3000000000000003"
+      }
+    },
+    {
+      "symbol": "PANEL_2X4",
+      "step_mr_best": {
+        "best_objective_score": 31759.620485410855,
+        "best_params": {
+          "var_window": 448,
+          "step_long_ticks": 604,
+          "step_short_ticks": 98,
+          "step_k_sd": 6.75,
+          "sigma_floor": 0.005441430002172316,
+          "z_buy": 2.1,
+          "z_sell": 4.0
+        },
+        "final_pnl": 36210.0,
+        "mean_day_pnl": 12070.0,
+        "pnl_spread": 3560.0,
+        "pnl_std": 1483.9658576485735,
+        "min_day_pnl": 10078.0,
+        "day_pnls": [
+          10078.0,
+          12494.0,
+          13638.0
+        ]
+      },
+      "ewma_mr_best": {
+        "best_objective_score": 22035.938835664132,
+        "best_params": {
+          "var_window": 195,
+          "alpha": 0.262553546679778,
+          "z_buy": 1.6,
+          "z_sell": 3.9000000000000004
+        },
+        "final_pnl": 24060.0,
+        "mean_day_pnl": 8020.0,
+        "pnl_spread": 1579.0,
+        "pnl_std": 741.7686072264495,
+        "min_day_pnl": 7490.0,
+        "day_pnls": [
+          7501.0,
+          7490.0,
+          9069.0
+        ]
+      },
+      "comparison": {
+        "better_by_optuna_score": "STEP_MR",
+        "delta_best_objective_score": 9723.681649746723,
+        "delta_final_pnl_best_trial": 12150.0
+      },
+      "proposed_clean_trader_pick": "STEP_MR",
+      "implement_step_params_env": {
+        "STEP_MR_VAR_WINDOW": "448",
+        "STEP_MR_STEP_LONG_TICKS": "604",
+        "STEP_MR_STEP_SHORT_TICKS": "98",
+        "STEP_MR_K_SD": "6.75",
+        "STEP_MR_SIGMA_FLOOR": "0.005441430002172316",
+        "STEP_MR_Z_BUY": "2.1",
+        "STEP_MR_Z_SELL": "4.0"
+      },
+      "implement_ewma_params_env": {
+        "EWMA_MR_VAR_WINDOW": "195",
+        "EWMA_MR_ALPHA": "0.262553546679778",
+        "EWMA_MR_Z_BUY": "1.6",
+        "EWMA_MR_Z_SELL": "3.9000000000000004"
+      }
+    },
+    {
+      "symbol": "PANEL_4X4",
+      "step_mr_best": {
+        "best_objective_score": 23109.505112371186,
+        "best_params": {
+          "var_window": 753,
+          "step_long_ticks": 2298,
+          "step_short_ticks": 78,
+          "step_k_sd": 5.0,
+          "sigma_floor": 0.0002718863046666178,
+          "z_buy": 3.5,
+          "z_sell": 3.7
+        },
+        "final_pnl": 39947.0,
+        "mean_day_pnl": 13315.666666666666,
+        "pnl_spread": 13300.0,
+        "pnl_std": 5895.824812714691,
+        "min_day_pnl": 5041.0,
+        "day_pnls": [
+          16565.0,
+          18341.0,
+          5041.0
+        ]
+      },
+      "ewma_mr_best": {
+        "best_objective_score": 17365.67844715939,
+        "best_params": {
+          "var_window": 718,
+          "alpha": 0.2381251607583628,
+          "z_buy": 3.8000000000000003,
+          "z_sell": 3.4000000000000004
+        },
+        "final_pnl": 28698.5,
+        "mean_day_pnl": 9566.166666666666,
+        "pnl_spread": 9070.0,
+        "pnl_std": 3771.369254734354,
+        "min_day_pnl": 4525.0,
+        "day_pnls": [
+          4525.0,
+          10578.5,
+          13595.0
+        ]
+      },
+      "comparison": {
+        "better_by_optuna_score": "STEP_MR",
+        "delta_best_objective_score": 5743.826665211796,
+        "delta_final_pnl_best_trial": 11248.5
+      },
+      "proposed_clean_trader_pick": "STEP_MR",
+      "implement_step_params_env": {
+        "STEP_MR_VAR_WINDOW": "753",
+        "STEP_MR_STEP_LONG_TICKS": "2298",
+        "STEP_MR_STEP_SHORT_TICKS": "78",
+        "STEP_MR_K_SD": "5.0",
+        "STEP_MR_SIGMA_FLOOR": "0.0002718863046666178",
+        "STEP_MR_Z_BUY": "3.5",
+        "STEP_MR_Z_SELL": "3.7"
+      },
+      "implement_ewma_params_env": {
+        "EWMA_MR_VAR_WINDOW": "718",
+        "EWMA_MR_ALPHA": "0.2381251607583628",
+        "EWMA_MR_Z_BUY": "3.8000000000000003",
+        "EWMA_MR_Z_SELL": "3.4000000000000004"
+      }
+    },
+    {
+      "symbol": "PEBBLES_L",
+      "step_mr_best": {
+        "best_objective_score": 47235.742884983774,
+        "best_params": {
+          "var_window": 782,
+          "step_long_ticks": 582,
+          "step_short_ticks": 97,
+          "step_k_sd": 3.75,
+          "sigma_floor": 0.0010888134478069542,
+          "z_buy": 3.2,
+          "z_sell": 2.3
+        },
+        "final_pnl": 52224.0,
+        "mean_day_pnl": 17408.0,
+        "pnl_spread": 4006.0,
+        "pnl_std": 1637.0951916937104,
+        "min_day_pnl": 15353.0,
+        "day_pnls": [
+          17512.0,
+          15353.0,
+          19359.0
+        ]
+      },
+      "ewma_mr_best": {
+        "best_objective_score": 3313.871776185334,
+        "best_params": {
+          "var_window": 316,
+          "alpha": 0.04080801602400146,
+          "z_buy": 3.9000000000000004,
+          "z_sell": 4.300000000000001
+        },
+        "final_pnl": 10718.0,
+        "mean_day_pnl": 3572.6666666666665,
+        "pnl_spread": 5868.0,
+        "pnl_std": 2560.213706357776,
+        "min_day_pnl": 0.0,
+        "day_pnls": [
+          4850.0,
+          5868.0,
+          0.0
+        ]
+      },
+      "comparison": {
+        "better_by_optuna_score": "STEP_MR",
+        "delta_best_objective_score": 43921.87110879844,
+        "delta_final_pnl_best_trial": 41506.0
+      },
+      "proposed_clean_trader_pick": "STEP_MR",
+      "implement_step_params_env": {
+        "STEP_MR_VAR_WINDOW": "782",
+        "STEP_MR_STEP_LONG_TICKS": "582",
+        "STEP_MR_STEP_SHORT_TICKS": "97",
+        "STEP_MR_K_SD": "3.75",
+        "STEP_MR_SIGMA_FLOOR": "0.0010888134478069542",
+        "STEP_MR_Z_BUY": "3.2",
+        "STEP_MR_Z_SELL": "2.3"
+      },
+      "implement_ewma_params_env": {
+        "EWMA_MR_VAR_WINDOW": "316",
+        "EWMA_MR_ALPHA": "0.04080801602400146",
+        "EWMA_MR_Z_BUY": "3.9000000000000004",
+        "EWMA_MR_Z_SELL": "4.300000000000001"
+      }
+    },
+    {
+      "symbol": "PEBBLES_M",
+      "step_mr_best": {
+        "best_objective_score": 54666.190760135876,
+        "best_params": {
+          "var_window": 478,
+          "step_long_ticks": 1706,
+          "step_short_ticks": 133,
+          "step_k_sd": 2.25,
+          "sigma_floor": 0.010555123238243232,
+          "z_buy": 1.1,
+          "z_sell": 1.9
+        },
+        "final_pnl": 68546.0,
+        "mean_day_pnl": 22848.666666666668,
+        "pnl_spread": 10975.0,
+        "pnl_std": 4841.348733106876,
+        "min_day_pnl": 18658.0,
+        "day_pnls": [
+          20255.0,
+          29633.0,
+          18658.0
+        ]
+      },
+      "ewma_mr_best": {
+        "best_objective_score": 61675.82586153349,
+        "best_params": {
+          "var_window": 336,
+          "alpha": 0.020228552524542583,
+          "z_buy": 2.5,
+          "z_sell": 3.0
+        },
+        "final_pnl": 84684.0,
+        "mean_day_pnl": 28228.0,
+        "pnl_spread": 18481.0,
+        "pnl_std": 7545.290230777519,
+        "min_day_pnl": 19046.0,
+        "day_pnls": [
+          28111.0,
+          37527.0,
+          19046.0
+        ]
+      },
+      "comparison": {
+        "better_by_optuna_score": "EWMA_MR",
+        "delta_best_objective_score": -7009.635101397616,
+        "delta_final_pnl_best_trial": -16138.0
+      },
+      "proposed_clean_trader_pick": "EWMA_MR",
+      "implement_step_params_env": {
+        "STEP_MR_VAR_WINDOW": "478",
+        "STEP_MR_STEP_LONG_TICKS": "1706",
+        "STEP_MR_STEP_SHORT_TICKS": "133",
+        "STEP_MR_K_SD": "2.25",
+        "STEP_MR_SIGMA_FLOOR": "0.010555123238243232",
+        "STEP_MR_Z_BUY": "1.1",
+        "STEP_MR_Z_SELL": "1.9"
+      },
+      "implement_ewma_params_env": {
+        "EWMA_MR_VAR_WINDOW": "336",
+        "EWMA_MR_ALPHA": "0.020228552524542583",
+        "EWMA_MR_Z_BUY": "2.5",
+        "EWMA_MR_Z_SELL": "3.0"
+      }
+    },
+    {
+      "symbol": "PEBBLES_S",
+      "step_mr_best": {
+        "best_objective_score": 68505.67897650003,
+        "best_params": {
+          "var_window": 336,
+          "step_long_ticks": 1985,
+          "step_short_ticks": 24,
+          "step_k_sd": 10.5,
+          "sigma_floor": 0.005416854437929823,
+          "z_buy": 2.2,
+          "z_sell": 2.3
+        },
+        "final_pnl": 76395.0,
+        "mean_day_pnl": 25465.0,
+        "pnl_spread": 6337.0,
+        "pnl_std": 2587.2017058332863,
+        "min_day_pnl": 22278.0,
+        "day_pnls": [
+          28615.0,
+          25502.0,
+          22278.0
+        ]
+      },
+      "ewma_mr_best": {
+        "best_objective_score": 11028.141272917743,
+        "best_params": {
+          "var_window": 521,
+          "alpha": 0.446831794530791,
+          "z_buy": 3.9000000000000004,
+          "z_sell": 2.0
+        },
+        "final_pnl": 19229.0,
+        "mean_day_pnl": 6409.666666666667,
+        "pnl_spread": 6402.0,
+        "pnl_std": 2998.0978784704294,
+        "min_day_pnl": 2170.0,
+        "day_pnls": [
+          8487.0,
+          2170.0,
+          8572.0
+        ]
+      },
+      "comparison": {
+        "better_by_optuna_score": "STEP_MR",
+        "delta_best_objective_score": 57477.53770358229,
+        "delta_final_pnl_best_trial": 57166.0
+      },
+      "proposed_clean_trader_pick": "STEP_MR",
+      "implement_step_params_env": {
+        "STEP_MR_VAR_WINDOW": "336",
+        "STEP_MR_STEP_LONG_TICKS": "1985",
+        "STEP_MR_STEP_SHORT_TICKS": "24",
+        "STEP_MR_K_SD": "10.5",
+        "STEP_MR_SIGMA_FLOOR": "0.005416854437929823",
+        "STEP_MR_Z_BUY": "2.2",
+        "STEP_MR_Z_SELL": "2.3"
+      },
+      "implement_ewma_params_env": {
+        "EWMA_MR_VAR_WINDOW": "521",
+        "EWMA_MR_ALPHA": "0.446831794530791",
+        "EWMA_MR_Z_BUY": "3.9000000000000004",
+        "EWMA_MR_Z_SELL": "2.0"
+      }
+    },
+    {
+      "symbol": "PEBBLES_XL",
+      "step_mr_best": {
+        "best_objective_score": 106008.49298472694,
+        "best_params": {
+          "var_window": 389,
+          "step_long_ticks": 1251,
+          "step_short_ticks": 191,
+          "step_k_sd": 2.25,
+          "sigma_floor": 0.002666434552987287,
+          "z_buy": 3.2,
+          "z_sell": 4.0
+        },
+        "final_pnl": 107756.0,
+        "mean_day_pnl": 35918.666666666664,
+        "pnl_spread": 1389.0,
+        "pnl_std": 597.5116921217711,
+        "min_day_pnl": 35091.0,
+        "day_pnls": [
+          36185.0,
+          35091.0,
+          36480.0
+        ]
+      },
+      "ewma_mr_best": {
+        "best_objective_score": 122247.45531830731,
+        "best_params": {
+          "var_window": 234,
+          "alpha": 0.07147431760746997,
+          "z_buy": 1.9,
+          "z_sell": 2.4000000000000004
+        },
+        "final_pnl": 185352.0,
+        "mean_day_pnl": 61784.0,
+        "pnl_spread": 50260.0,
+        "pnl_std": 21407.57446948782,
+        "min_day_pnl": 32337.0,
+        "day_pnls": [
+          32337.0,
+          70418.0,
+          82597.0
+        ]
+      },
+      "comparison": {
+        "better_by_optuna_score": "EWMA_MR",
+        "delta_best_objective_score": -16238.962333580377,
+        "delta_final_pnl_best_trial": -77596.0
+      },
+      "proposed_clean_trader_pick": "EWMA_MR",
+      "implement_step_params_env": {
+        "STEP_MR_VAR_WINDOW": "389",
+        "STEP_MR_STEP_LONG_TICKS": "1251",
+        "STEP_MR_STEP_SHORT_TICKS": "191",
+        "STEP_MR_K_SD": "2.25",
+        "STEP_MR_SIGMA_FLOOR": "0.002666434552987287",
+        "STEP_MR_Z_BUY": "3.2",
+        "STEP_MR_Z_SELL": "4.0"
+      },
+      "implement_ewma_params_env": {
+        "EWMA_MR_VAR_WINDOW": "234",
+        "EWMA_MR_ALPHA": "0.07147431760746997",
+        "EWMA_MR_Z_BUY": "1.9",
+        "EWMA_MR_Z_SELL": "2.4000000000000004"
+      }
+    },
+    {
+      "symbol": "PEBBLES_XS",
+      "step_mr_best": {
+        "best_objective_score": 47262.24075555861,
+        "best_params": {
+          "var_window": 781,
+          "step_long_ticks": 2105,
+          "step_short_ticks": 74,
+          "step_k_sd": 2.5,
+          "sigma_floor": 0.0008421590612918853,
+          "z_buy": 3.7,
+          "z_sell": 2.3
+        },
+        "final_pnl": 53409.0,
+        "mean_day_pnl": 17803.0,
+        "pnl_spread": 4891.0,
+        "pnl_std": 2092.9320740689764,
+        "min_day_pnl": 14914.0,
+        "day_pnls": [
+          19805.0,
+          14914.0,
+          18690.0
+        ]
+      },
+      "ewma_mr_best": {
+        "best_objective_score": 60205.497177545716,
+        "best_params": {
+          "var_window": 507,
+          "alpha": 0.00850171445630847,
+          "z_buy": 3.3000000000000003,
+          "z_sell": 1.6
+        },
+        "final_pnl": 73973.0,
+        "mean_day_pnl": 24657.666666666668,
+        "pnl_spread": 10864.0,
+        "pnl_std": 4839.171370757142,
+        "min_day_pnl": 17857.0,
+        "day_pnls": [
+          28721.0,
+          17857.0,
+          27395.0
+        ]
+      },
+      "comparison": {
+        "better_by_optuna_score": "EWMA_MR",
+        "delta_best_objective_score": -12943.256421987106,
+        "delta_final_pnl_best_trial": -20564.0
+      },
+      "proposed_clean_trader_pick": "EWMA_MR",
+      "implement_step_params_env": {
+        "STEP_MR_VAR_WINDOW": "781",
+        "STEP_MR_STEP_LONG_TICKS": "2105",
+        "STEP_MR_STEP_SHORT_TICKS": "74",
+        "STEP_MR_K_SD": "2.5",
+        "STEP_MR_SIGMA_FLOOR": "0.0008421590612918853",
+        "STEP_MR_Z_BUY": "3.7",
+        "STEP_MR_Z_SELL": "2.3"
+      },
+      "implement_ewma_params_env": {
+        "EWMA_MR_VAR_WINDOW": "507",
+        "EWMA_MR_ALPHA": "0.00850171445630847",
+        "EWMA_MR_Z_BUY": "3.3000000000000003",
+        "EWMA_MR_Z_SELL": "1.6"
+      }
+    },
+    {
+      "symbol": "ROBOT_DISHES",
+      "step_mr_best": {
+        "best_objective_score": 39144.786458516995,
+        "best_params": {
+          "var_window": 312,
+          "step_long_ticks": 2118,
+          "step_short_ticks": 151,
+          "step_k_sd": 12.0,
+          "sigma_floor": 0.0008915641324864754,
+          "z_buy": 1.7000000000000002,
+          "z_sell": 3.7
+        },
+        "final_pnl": 41636.0,
+        "mean_day_pnl": 13878.666666666666,
+        "pnl_spread": 1992.0,
+        "pnl_std": 832.022569138335,
+        "min_day_pnl": 13007.0,
+        "day_pnls": [
+          13630.0,
+          13007.0,
+          14999.0
+        ]
+      },
+      "ewma_mr_best": {
+        "best_objective_score": 16813.140371851274,
+        "best_params": {
+          "var_window": 335,
+          "alpha": 0.010461974007173162,
+          "z_buy": 2.1,
+          "z_sell": 3.8000000000000003
+        },
+        "final_pnl": 40455.0,
+        "mean_day_pnl": 13485.0,
+        "pnl_spread": 18990.0,
+        "pnl_std": 7753.099380247876,
+        "min_day_pnl": 4050.0,
+        "day_pnls": [
+          4050.0,
+          13365.0,
+          23040.0
+        ]
+      },
+      "comparison": {
+        "better_by_optuna_score": "STEP_MR",
+        "delta_best_objective_score": 22331.64608666572,
+        "delta_final_pnl_best_trial": 1181.0
+      },
+      "proposed_clean_trader_pick": "STEP_MR",
+      "implement_step_params_env": {
+        "STEP_MR_VAR_WINDOW": "312",
+        "STEP_MR_STEP_LONG_TICKS": "2118",
+        "STEP_MR_STEP_SHORT_TICKS": "151",
+        "STEP_MR_K_SD": "12.0",
+        "STEP_MR_SIGMA_FLOOR": "0.0008915641324864754",
+        "STEP_MR_Z_BUY": "1.7000000000000002",
+        "STEP_MR_Z_SELL": "3.7"
+      },
+      "implement_ewma_params_env": {
+        "EWMA_MR_VAR_WINDOW": "335",
+        "EWMA_MR_ALPHA": "0.010461974007173162",
+        "EWMA_MR_Z_BUY": "2.1",
+        "EWMA_MR_Z_SELL": "3.8000000000000003"
+      }
+    },
+    {
+      "symbol": "ROBOT_IRONING",
+      "step_mr_best": {
+        "best_objective_score": 19159.292983687832,
+        "best_params": {
+          "var_window": 129,
+          "step_long_ticks": 355,
+          "step_short_ticks": 108,
+          "step_k_sd": 5.25,
+          "sigma_floor": 0.018520182851118352,
+          "z_buy": 4.4,
+          "z_sell": 2.5
+        },
+        "final_pnl": 25377.0,
+        "mean_day_pnl": 8459.0,
+        "pnl_spread": 4987.0,
+        "pnl_std": 2051.178360520281,
+        "min_day_pnl": 6142.0,
+        "day_pnls": [
+          11129.0,
+          8106.0,
+          6142.0
+        ]
+      },
+      "ewma_mr_best": {
+        "best_objective_score": 19537.259136641795,
+        "best_params": {
+          "var_window": 120,
+          "alpha": 0.014943497924836303,
+          "z_buy": 3.4000000000000004,
+          "z_sell": 1.8
+        },
+        "final_pnl": 29011.0,
+        "mean_day_pnl": 9670.333333333334,
+        "pnl_spread": 7567.0,
+        "pnl_std": 3177.9014389303447,
+        "min_day_pnl": 6414.0,
+        "day_pnls": [
+          8616.0,
+          13981.0,
+          6414.0
+        ]
+      },
+      "comparison": {
+        "better_by_optuna_score": "EWMA_MR",
+        "delta_best_objective_score": -377.9661529539626,
+        "delta_final_pnl_best_trial": -3634.0
+      },
+      "proposed_clean_trader_pick": "EWMA_MR",
+      "implement_step_params_env": {
+        "STEP_MR_VAR_WINDOW": "129",
+        "STEP_MR_STEP_LONG_TICKS": "355",
+        "STEP_MR_STEP_SHORT_TICKS": "108",
+        "STEP_MR_K_SD": "5.25",
+        "STEP_MR_SIGMA_FLOOR": "0.018520182851118352",
+        "STEP_MR_Z_BUY": "4.4",
+        "STEP_MR_Z_SELL": "2.5"
+      },
+      "implement_ewma_params_env": {
+        "EWMA_MR_VAR_WINDOW": "120",
+        "EWMA_MR_ALPHA": "0.014943497924836303",
+        "EWMA_MR_Z_BUY": "3.4000000000000004",
+        "EWMA_MR_Z_SELL": "1.8"
+      }
+    },
+    {
+      "symbol": "ROBOT_LAUNDRY",
+      "step_mr_best": {
+        "best_objective_score": 34166.521886481736,
+        "best_params": {
+          "var_window": 101,
+          "step_long_ticks": 442,
+          "step_short_ticks": 179,
+          "step_k_sd": 5.75,
+          "sigma_floor": 0.04112842105287768,
+          "z_buy": 2.7,
+          "z_sell": 3.6
+        },
+        "final_pnl": 40904.0,
+        "mean_day_pnl": 13634.666666666666,
+        "pnl_spread": 5383.0,
+        "pnl_std": 2257.463522530443,
+        "min_day_pnl": 10578.0,
+        "day_pnls": [
+          14365.0,
+          10578.0,
+          15961.0
+        ]
+      },
+      "ewma_mr_best": {
+        "best_objective_score": 32515.23363297845,
+        "best_params": {
+          "var_window": 112,
+          "alpha": 0.012864747659903529,
+          "z_buy": 3.8000000000000003,
+          "z_sell": 3.5
+        },
+        "final_pnl": 39260.0,
+        "mean_day_pnl": 13086.666666666666,
+        "pnl_spread": 5408.0,
+        "pnl_std": 2227.943945035921,
+        "min_day_pnl": 10594.0,
+        "day_pnls": [
+          10594.0,
+          12664.0,
+          16002.0
+        ]
+      },
+      "comparison": {
+        "better_by_optuna_score": "STEP_MR",
+        "delta_best_objective_score": 1651.2882535032877,
+        "delta_final_pnl_best_trial": 1644.0
+      },
+      "proposed_clean_trader_pick": "STEP_MR",
+      "implement_step_params_env": {
+        "STEP_MR_VAR_WINDOW": "101",
+        "STEP_MR_STEP_LONG_TICKS": "442",
+        "STEP_MR_STEP_SHORT_TICKS": "179",
+        "STEP_MR_K_SD": "5.75",
+        "STEP_MR_SIGMA_FLOOR": "0.04112842105287768",
+        "STEP_MR_Z_BUY": "2.7",
+        "STEP_MR_Z_SELL": "3.6"
+      },
+      "implement_ewma_params_env": {
+        "EWMA_MR_VAR_WINDOW": "112",
+        "EWMA_MR_ALPHA": "0.012864747659903529",
+        "EWMA_MR_Z_BUY": "3.8000000000000003",
+        "EWMA_MR_Z_SELL": "3.5"
+      }
+    },
+    {
+      "symbol": "ROBOT_MOPPING",
+      "step_mr_best": {
+        "best_objective_score": 19986.173798664095,
+        "best_params": {
+          "var_window": 797,
+          "step_long_ticks": 824,
+          "step_short_ticks": 52,
+          "step_k_sd": 4.75,
+          "sigma_floor": 0.0039077876744843835,
+          "z_buy": 3.1,
+          "z_sell": 3.4000000000000004
+        },
+        "final_pnl": 31811.0,
+        "mean_day_pnl": 10603.666666666666,
+        "pnl_spread": 9357.0,
+        "pnl_std": 4113.043668893174,
+        "min_day_pnl": 4847.0,
+        "day_pnls": [
+          14204.0,
+          12760.0,
+          4847.0
+        ]
+      },
+      "ewma_mr_best": {
+        "best_objective_score": 1133.557914230677,
+        "best_params": {
+          "var_window": 751,
+          "alpha": 0.20184392800342815,
+          "z_buy": 3.7,
+          "z_sell": 4.0
+        },
+        "final_pnl": 5888.5,
+        "mean_day_pnl": 1962.8333333333333,
+        "pnl_spread": 3818.5,
+        "pnl_std": 1560.7368096155383,
+        "min_day_pnl": 0.0,
+        "day_pnls": [
+          2070.0,
+          0.0,
+          3818.5
+        ]
+      },
+      "comparison": {
+        "better_by_optuna_score": "STEP_MR",
+        "delta_best_objective_score": 18852.615884433417,
+        "delta_final_pnl_best_trial": 25922.5
+      },
+      "proposed_clean_trader_pick": "STEP_MR",
+      "implement_step_params_env": {
+        "STEP_MR_VAR_WINDOW": "797",
+        "STEP_MR_STEP_LONG_TICKS": "824",
+        "STEP_MR_STEP_SHORT_TICKS": "52",
+        "STEP_MR_K_SD": "4.75",
+        "STEP_MR_SIGMA_FLOOR": "0.0039077876744843835",
+        "STEP_MR_Z_BUY": "3.1",
+        "STEP_MR_Z_SELL": "3.4000000000000004"
+      },
+      "implement_ewma_params_env": {
+        "EWMA_MR_VAR_WINDOW": "751",
+        "EWMA_MR_ALPHA": "0.20184392800342815",
+        "EWMA_MR_Z_BUY": "3.7",
+        "EWMA_MR_Z_SELL": "4.0"
+      }
+    },
+    {
+      "symbol": "ROBOT_VACUUMING",
+      "step_mr_best": {
+        "best_objective_score": 25933.67514263248,
+        "best_params": {
+          "var_window": 769,
+          "step_long_ticks": 2037,
+          "step_short_ticks": 120,
+          "step_k_sd": 9.0,
+          "sigma_floor": 0.004185287373624241,
+          "z_buy": 3.4000000000000004,
+          "z_sell": 1.3
+        },
+        "final_pnl": 27953.0,
+        "mean_day_pnl": 9317.666666666666,
+        "pnl_spread": 1614.0,
+        "pnl_std": 675.5414289458657,
+        "min_day_pnl": 8616.0,
+        "day_pnls": [
+          8616.0,
+          9107.0,
+          10230.0
+        ]
+      },
+      "ewma_mr_best": {
+        "best_objective_score": 16433.82038452344,
+        "best_params": {
+          "var_window": 50,
+          "alpha": 0.2290987815853566,
+          "z_buy": 3.7,
+          "z_sell": 3.2
+        },
+        "final_pnl": 17592.0,
+        "mean_day_pnl": 5864.0,
+        "pnl_spread": 908.0,
+        "pnl_std": 416.9660257942686,
+        "min_day_pnl": 5275.0,
+        "day_pnls": [
+          6183.0,
+          5275.0,
+          6134.0
+        ]
+      },
+      "comparison": {
+        "better_by_optuna_score": "STEP_MR",
+        "delta_best_objective_score": 9499.854758109042,
+        "delta_final_pnl_best_trial": 10361.0
+      },
+      "proposed_clean_trader_pick": "STEP_MR",
+      "implement_step_params_env": {
+        "STEP_MR_VAR_WINDOW": "769",
+        "STEP_MR_STEP_LONG_TICKS": "2037",
+        "STEP_MR_STEP_SHORT_TICKS": "120",
+        "STEP_MR_K_SD": "9.0",
+        "STEP_MR_SIGMA_FLOOR": "0.004185287373624241",
+        "STEP_MR_Z_BUY": "3.4000000000000004",
+        "STEP_MR_Z_SELL": "1.3"
+      },
+      "implement_ewma_params_env": {
+        "EWMA_MR_VAR_WINDOW": "50",
+        "EWMA_MR_ALPHA": "0.2290987815853566",
+        "EWMA_MR_Z_BUY": "3.7",
+        "EWMA_MR_Z_SELL": "3.2"
+      }
+    },
+    {
+      "symbol": "SLEEP_POD_COTTON",
+      "step_mr_best": {
+        "best_objective_score": 3954.373723226802,
+        "best_params": {
+          "var_window": 471,
+          "step_long_ticks": 1529,
+          "step_short_ticks": 26,
+          "step_k_sd": 12.0,
+          "sigma_floor": 0.0027738565174817626,
+          "z_buy": 2.5,
+          "z_sell": 2.7
+        },
+        "final_pnl": 5466.0,
+        "mean_day_pnl": 1822.0,
+        "pnl_spread": 1179.0,
+        "pnl_std": 554.3771279553297,
+        "min_day_pnl": 1427.0,
+        "day_pnls": [
+          2606.0,
+          1433.0,
+          1427.0
+        ]
+      },
+      "ewma_mr_best": {
+        "best_objective_score": 5681.253105343778,
+        "best_params": {
+          "var_window": 210,
+          "alpha": 0.15300269791154542,
+          "z_buy": 3.6,
+          "z_sell": 3.7
+        },
+        "final_pnl": 17351.0,
+        "mean_day_pnl": 5783.666666666667,
+        "pnl_spread": 9325.0,
+        "pnl_std": 3907.9114910937046,
+        "min_day_pnl": 497.0,
+        "day_pnls": [
+          9822.0,
+          7032.0,
+          497.0
+        ]
+      },
+      "comparison": {
+        "better_by_optuna_score": "EWMA_MR",
+        "delta_best_objective_score": -1726.8793821169756,
+        "delta_final_pnl_best_trial": -11885.0
+      },
+      "proposed_clean_trader_pick": "EWMA_MR",
+      "implement_step_params_env": {
+        "STEP_MR_VAR_WINDOW": "471",
+        "STEP_MR_STEP_LONG_TICKS": "1529",
+        "STEP_MR_STEP_SHORT_TICKS": "26",
+        "STEP_MR_K_SD": "12.0",
+        "STEP_MR_SIGMA_FLOOR": "0.0027738565174817626",
+        "STEP_MR_Z_BUY": "2.5",
+        "STEP_MR_Z_SELL": "2.7"
+      },
+      "implement_ewma_params_env": {
+        "EWMA_MR_VAR_WINDOW": "210",
+        "EWMA_MR_ALPHA": "0.15300269791154542",
+        "EWMA_MR_Z_BUY": "3.6",
+        "EWMA_MR_Z_SELL": "3.7"
+      }
+    },
+    {
+      "symbol": "SLEEP_POD_LAMB_WOOL",
+      "step_mr_best": {
+        "best_objective_score": 26421.334149689887,
+        "best_params": {
+          "var_window": 471,
+          "step_long_ticks": 481,
+          "step_short_ticks": 20,
+          "step_k_sd": 10.25,
+          "sigma_floor": 0.0004483488676355781,
+          "z_buy": 3.5,
+          "z_sell": 3.8000000000000003
+        },
+        "final_pnl": 34095.0,
+        "mean_day_pnl": 11365.0,
+        "pnl_spread": 6152.0,
+        "pnl_std": 2536.1097505168555,
+        "min_day_pnl": 8538.0,
+        "day_pnls": [
+          8538.0,
+          10867.0,
+          14690.0
+        ]
+      },
+      "ewma_mr_best": {
+        "best_objective_score": 18588.90410413567,
+        "best_params": {
+          "var_window": 789,
+          "alpha": 0.00809797057337411,
+          "z_buy": 2.6,
+          "z_sell": 3.8000000000000003
+        },
+        "final_pnl": 39446.0,
+        "mean_day_pnl": 13148.666666666666,
+        "pnl_spread": 16626.0,
+        "pnl_std": 7051.826493107221,
+        "min_day_pnl": 6188.0,
+        "day_pnls": [
+          22814.0,
+          10444.0,
+          6188.0
+        ]
+      },
+      "comparison": {
+        "better_by_optuna_score": "STEP_MR",
+        "delta_best_objective_score": 7832.430045554218,
+        "delta_final_pnl_best_trial": -5351.0
+      },
+      "proposed_clean_trader_pick": "STEP_MR",
+      "implement_step_params_env": {
+        "STEP_MR_VAR_WINDOW": "471",
+        "STEP_MR_STEP_LONG_TICKS": "481",
+        "STEP_MR_STEP_SHORT_TICKS": "20",
+        "STEP_MR_K_SD": "10.25",
+        "STEP_MR_SIGMA_FLOOR": "0.0004483488676355781",
+        "STEP_MR_Z_BUY": "3.5",
+        "STEP_MR_Z_SELL": "3.8000000000000003"
+      },
+      "implement_ewma_params_env": {
+        "EWMA_MR_VAR_WINDOW": "789",
+        "EWMA_MR_ALPHA": "0.00809797057337411",
+        "EWMA_MR_Z_BUY": "2.6",
+        "EWMA_MR_Z_SELL": "3.8000000000000003"
+      }
+    },
+    {
+      "symbol": "SLEEP_POD_NYLON",
+      "step_mr_best": {
+        "best_objective_score": 43454.53495083196,
+        "best_params": {
+          "var_window": 203,
+          "step_long_ticks": 1543,
+          "step_short_ticks": 144,
+          "step_k_sd": 10.5,
+          "sigma_floor": 0.00012934674782510852,
+          "z_buy": 1.8,
+          "z_sell": 2.4000000000000004
+        },
+        "final_pnl": 45184.0,
+        "mean_day_pnl": 15061.333333333334,
+        "pnl_spread": 1386.0,
+        "pnl_std": 572.44174861339,
+        "min_day_pnl": 14307.0,
+        "day_pnls": [
+          15693.0,
+          15184.0,
+          14307.0
+        ]
+      },
+      "ewma_mr_best": {
+        "best_objective_score": 39338.95063344769,
+        "best_params": {
+          "var_window": 212,
+          "alpha": 0.008898463985420827,
+          "z_buy": 3.1,
+          "z_sell": 4.2
+        },
+        "final_pnl": 45774.0,
+        "mean_day_pnl": 15258.0,
+        "pnl_spread": 5107.0,
+        "pnl_std": 2213.415610920522,
+        "min_day_pnl": 13230.0,
+        "day_pnls": [
+          14207.0,
+          18337.0,
+          13230.0
+        ]
+      },
+      "comparison": {
+        "better_by_optuna_score": "STEP_MR",
+        "delta_best_objective_score": 4115.584317384273,
+        "delta_final_pnl_best_trial": -590.0
+      },
+      "proposed_clean_trader_pick": "STEP_MR",
+      "implement_step_params_env": {
+        "STEP_MR_VAR_WINDOW": "203",
+        "STEP_MR_STEP_LONG_TICKS": "1543",
+        "STEP_MR_STEP_SHORT_TICKS": "144",
+        "STEP_MR_K_SD": "10.5",
+        "STEP_MR_SIGMA_FLOOR": "0.00012934674782510852",
+        "STEP_MR_Z_BUY": "1.8",
+        "STEP_MR_Z_SELL": "2.4000000000000004"
+      },
+      "implement_ewma_params_env": {
+        "EWMA_MR_VAR_WINDOW": "212",
+        "EWMA_MR_ALPHA": "0.008898463985420827",
+        "EWMA_MR_Z_BUY": "3.1",
+        "EWMA_MR_Z_SELL": "4.2"
+      }
+    },
+    {
+      "symbol": "SLEEP_POD_POLYESTER",
+      "step_mr_best": {
+        "best_objective_score": 31867.41897488432,
+        "best_params": {
+          "var_window": 506,
+          "step_long_ticks": 1428,
+          "step_short_ticks": 161,
+          "step_k_sd": 3.75,
+          "sigma_floor": 0.005862638174431491,
+          "z_buy": 1.2,
+          "z_sell": 2.8
+        },
+        "final_pnl": 37374.0,
+        "mean_day_pnl": 12458.0,
+        "pnl_spread": 4383.0,
+        "pnl_std": 1872.635041859465,
+        "min_day_pnl": 9876.0,
+        "day_pnls": [
+          9876.0,
+          14259.0,
+          13239.0
+        ]
+      },
+      "ewma_mr_best": {
+        "best_objective_score": 32156.355335025044,
+        "best_params": {
+          "var_window": 647,
+          "alpha": 0.014332677352590202,
+          "z_buy": 2.8,
+          "z_sell": 2.8
+        },
+        "final_pnl": 39458.0,
+        "mean_day_pnl": 13152.666666666666,
+        "pnl_spread": 5845.0,
+        "pnl_std": 2427.7411082915924,
+        "min_day_pnl": 9914.0,
+        "day_pnls": [
+          13785.0,
+          9914.0,
+          15759.0
+        ]
+      },
+      "comparison": {
+        "better_by_optuna_score": "EWMA_MR",
+        "delta_best_objective_score": -288.936360140724,
+        "delta_final_pnl_best_trial": -2084.0
+      },
+      "proposed_clean_trader_pick": "EWMA_MR",
+      "implement_step_params_env": {
+        "STEP_MR_VAR_WINDOW": "506",
+        "STEP_MR_STEP_LONG_TICKS": "1428",
+        "STEP_MR_STEP_SHORT_TICKS": "161",
+        "STEP_MR_K_SD": "3.75",
+        "STEP_MR_SIGMA_FLOOR": "0.005862638174431491",
+        "STEP_MR_Z_BUY": "1.2",
+        "STEP_MR_Z_SELL": "2.8"
+      },
+      "implement_ewma_params_env": {
+        "EWMA_MR_VAR_WINDOW": "647",
+        "EWMA_MR_ALPHA": "0.014332677352590202",
+        "EWMA_MR_Z_BUY": "2.8",
+        "EWMA_MR_Z_SELL": "2.8"
+      }
+    },
+    {
+      "symbol": "SLEEP_POD_SUEDE",
+      "step_mr_best": {
+        "best_objective_score": 50030.80384425622,
+        "best_params": {
+          "var_window": 629,
+          "step_long_ticks": 508,
+          "step_short_ticks": 179,
+          "step_k_sd": 11.5,
+          "sigma_floor": 0.0004055168168039993,
+          "z_buy": 3.1,
+          "z_sell": 3.6
+        },
+        "final_pnl": 55963.0,
+        "mean_day_pnl": 18654.333333333332,
+        "pnl_spread": 4720.0,
+        "pnl_std": 2020.3269262396343,
+        "min_day_pnl": 15865.0,
+        "day_pnls": [
+          20585.0,
+          19513.0,
+          15865.0
+        ]
+      },
+      "ewma_mr_best": {
+        "best_objective_score": 12923.986394109394,
+        "best_params": {
+          "var_window": 459,
+          "alpha": 0.06311415749739603,
+          "z_buy": 3.4000000000000004,
+          "z_sell": 3.9000000000000004
+        },
+        "final_pnl": 20961.0,
+        "mean_day_pnl": 6987.0,
+        "pnl_spread": 6423.0,
+        "pnl_std": 2690.022676484345,
+        "min_day_pnl": 4200.0,
+        "day_pnls": [
+          6138.0,
+          10623.0,
+          4200.0
+        ]
+      },
+      "comparison": {
+        "better_by_optuna_score": "STEP_MR",
+        "delta_best_objective_score": 37106.817450146824,
+        "delta_final_pnl_best_trial": 35002.0
+      },
+      "proposed_clean_trader_pick": "STEP_MR",
+      "implement_step_params_env": {
+        "STEP_MR_VAR_WINDOW": "629",
+        "STEP_MR_STEP_LONG_TICKS": "508",
+        "STEP_MR_STEP_SHORT_TICKS": "179",
+        "STEP_MR_K_SD": "11.5",
+        "STEP_MR_SIGMA_FLOOR": "0.0004055168168039993",
+        "STEP_MR_Z_BUY": "3.1",
+        "STEP_MR_Z_SELL": "3.6"
+      },
+      "implement_ewma_params_env": {
+        "EWMA_MR_VAR_WINDOW": "459",
+        "EWMA_MR_ALPHA": "0.06311415749739603",
+        "EWMA_MR_Z_BUY": "3.4000000000000004",
+        "EWMA_MR_Z_SELL": "3.9000000000000004"
+      }
+    },
+    {
+      "symbol": "SNACKPACK_CHOCOLATE",
+      "step_mr_best": {
+        "best_objective_score": 30207.203240020837,
+        "best_params": {
+          "var_window": 578,
+          "step_long_ticks": 1967,
+          "step_short_ticks": 141,
+          "step_k_sd": 6.75,
+          "sigma_floor": 0.007037013667084517,
+          "z_buy": 2.8,
+          "z_sell": 1.3
+        },
+        "final_pnl": 33438.0,
+        "mean_day_pnl": 11146.0,
+        "pnl_spread": 2595.0,
+        "pnl_std": 1059.6612666319365,
+        "min_day_pnl": 9865.0,
+        "day_pnls": [
+          9865.0,
+          11113.0,
+          12460.0
+        ]
+      },
+      "ewma_mr_best": {
+        "best_objective_score": 11346.780328431749,
+        "best_params": {
+          "var_window": 591,
+          "alpha": 0.013411657120493232,
+          "z_buy": 3.1,
+          "z_sell": 1.9
+        },
+        "final_pnl": 16029.0,
+        "mean_day_pnl": 5343.0,
+        "pnl_spread": 3756.0,
+        "pnl_std": 1543.6994526137528,
+        "min_day_pnl": 3339.0,
+        "day_pnls": [
+          7095.0,
+          3339.0,
+          5595.0
+        ]
+      },
+      "comparison": {
+        "better_by_optuna_score": "STEP_MR",
+        "delta_best_objective_score": 18860.42291158909,
+        "delta_final_pnl_best_trial": 17409.0
+      },
+      "proposed_clean_trader_pick": "STEP_MR",
+      "implement_step_params_env": {
+        "STEP_MR_VAR_WINDOW": "578",
+        "STEP_MR_STEP_LONG_TICKS": "1967",
+        "STEP_MR_STEP_SHORT_TICKS": "141",
+        "STEP_MR_K_SD": "6.75",
+        "STEP_MR_SIGMA_FLOOR": "0.007037013667084517",
+        "STEP_MR_Z_BUY": "2.8",
+        "STEP_MR_Z_SELL": "1.3"
+      },
+      "implement_ewma_params_env": {
+        "EWMA_MR_VAR_WINDOW": "591",
+        "EWMA_MR_ALPHA": "0.013411657120493232",
+        "EWMA_MR_Z_BUY": "3.1",
+        "EWMA_MR_Z_SELL": "1.9"
+      }
+    },
+    {
+      "symbol": "SNACKPACK_PISTACHIO",
+      "step_mr_best": {
+        "best_objective_score": 20664.407323397132,
+        "best_params": {
+          "var_window": 449,
+          "step_long_ticks": 1054,
+          "step_short_ticks": 96,
+          "step_k_sd": 5.0,
+          "sigma_floor": 0.027585249150859473,
+          "z_buy": 4.2,
+          "z_sell": 1.3
+        },
+        "final_pnl": 24550.0,
+        "mean_day_pnl": 8183.333333333333,
+        "pnl_spread": 3110.0,
+        "pnl_std": 1292.654461004779,
+        "min_day_pnl": 6800.0,
+        "day_pnls": [
+          9910.0,
+          6800.0,
+          7840.0
+        ]
+      },
+      "ewma_mr_best": {
+        "best_objective_score": 23548.98243451473,
+        "best_params": {
+          "var_window": 436,
+          "alpha": 0.010743426141510163,
+          "z_buy": 3.8000000000000003,
+          "z_sell": 3.2
+        },
+        "final_pnl": 33090.0,
+        "mean_day_pnl": 11030.0,
+        "pnl_spread": 7520.0,
+        "pnl_std": 3368.3626091421133,
+        "min_day_pnl": 8250.0,
+        "day_pnls": [
+          15770.0,
+          9070.0,
+          8250.0
+        ]
+      },
+      "comparison": {
+        "better_by_optuna_score": "EWMA_MR",
+        "delta_best_objective_score": -2884.5751111175996,
+        "delta_final_pnl_best_trial": -8540.0
+      },
+      "proposed_clean_trader_pick": "EWMA_MR",
+      "implement_step_params_env": {
+        "STEP_MR_VAR_WINDOW": "449",
+        "STEP_MR_STEP_LONG_TICKS": "1054",
+        "STEP_MR_STEP_SHORT_TICKS": "96",
+        "STEP_MR_K_SD": "5.0",
+        "STEP_MR_SIGMA_FLOOR": "0.027585249150859473",
+        "STEP_MR_Z_BUY": "4.2",
+        "STEP_MR_Z_SELL": "1.3"
+      },
+      "implement_ewma_params_env": {
+        "EWMA_MR_VAR_WINDOW": "436",
+        "EWMA_MR_ALPHA": "0.010743426141510163",
+        "EWMA_MR_Z_BUY": "3.8000000000000003",
+        "EWMA_MR_Z_SELL": "3.2"
+      }
+    },
+    {
+      "symbol": "SNACKPACK_RASPBERRY",
+      "step_mr_best": {
+        "best_objective_score": 39008.224953020035,
+        "best_params": {
+          "var_window": 526,
+          "step_long_ticks": 2281,
+          "step_short_ticks": 114,
+          "step_k_sd": 10.5,
+          "sigma_floor": 0.009129852353765785,
+          "z_buy": 4.0,
+          "z_sell": 3.5
+        },
+        "final_pnl": 43294.0,
+        "mean_day_pnl": 14431.333333333334,
+        "pnl_spread": 3441.0,
+        "pnl_std": 1407.958411633273,
+        "min_day_pnl": 12644.0,
+        "day_pnls": [
+          16085.0,
+          14565.0,
+          12644.0
+        ]
+      },
+      "ewma_mr_best": {
+        "best_objective_score": 24315.695634820095,
+        "best_params": {
+          "var_window": 716,
+          "alpha": 0.08043291758669684,
+          "z_buy": 3.4000000000000004,
+          "z_sell": 3.1
+        },
+        "final_pnl": 29415.0,
+        "mean_day_pnl": 9805.0,
+        "pnl_spread": 4010.0,
+        "pnl_std": 1815.5072752998449,
+        "min_day_pnl": 7245.0,
+        "day_pnls": [
+          11255.0,
+          7245.0,
+          10915.0
+        ]
+      },
+      "comparison": {
+        "better_by_optuna_score": "STEP_MR",
+        "delta_best_objective_score": 14692.52931819994,
+        "delta_final_pnl_best_trial": 13879.0
+      },
+      "proposed_clean_trader_pick": "STEP_MR",
+      "implement_step_params_env": {
+        "STEP_MR_VAR_WINDOW": "526",
+        "STEP_MR_STEP_LONG_TICKS": "2281",
+        "STEP_MR_STEP_SHORT_TICKS": "114",
+        "STEP_MR_K_SD": "10.5",
+        "STEP_MR_SIGMA_FLOOR": "0.009129852353765785",
+        "STEP_MR_Z_BUY": "4.0",
+        "STEP_MR_Z_SELL": "3.5"
+      },
+      "implement_ewma_params_env": {
+        "EWMA_MR_VAR_WINDOW": "716",
+        "EWMA_MR_ALPHA": "0.08043291758669684",
+        "EWMA_MR_Z_BUY": "3.4000000000000004",
+        "EWMA_MR_Z_SELL": "3.1"
+      }
+    },
+    {
+      "symbol": "SNACKPACK_STRAWBERRY",
+      "step_mr_best": {
+        "best_objective_score": 29571.238249603215,
+        "best_params": {
+          "var_window": 257,
+          "step_long_ticks": 1574,
+          "step_short_ticks": 160,
+          "step_k_sd": 2.25,
+          "sigma_floor": 0.0010705876051900246,
+          "z_buy": 3.0,
+          "z_sell": 4.0
+        },
+        "final_pnl": 40385.0,
+        "mean_day_pnl": 13461.666666666666,
+        "pnl_spread": 8625.0,
+        "pnl_std": 3647.9362506613093,
+        "min_day_pnl": 8475.0,
+        "day_pnls": [
+          14810.0,
+          17100.0,
+          8475.0
+        ]
+      },
+      "ewma_mr_best": {
+        "best_objective_score": 18895.316180114864,
+        "best_params": {
+          "var_window": 542,
+          "alpha": 0.00884032982107404,
+          "z_buy": 3.6,
+          "z_sell": 3.8000000000000003
+        },
+        "final_pnl": 26685.0,
+        "mean_day_pnl": 8895.0,
+        "pnl_spread": 6180.0,
+        "pnl_std": 2682.8063664752253,
+        "min_day_pnl": 5160.0,
+        "day_pnls": [
+          11340.0,
+          5160.0,
+          10185.0
+        ]
+      },
+      "comparison": {
+        "better_by_optuna_score": "STEP_MR",
+        "delta_best_objective_score": 10675.922069488352,
+        "delta_final_pnl_best_trial": 13700.0
+      },
+      "proposed_clean_trader_pick": "STEP_MR",
+      "implement_step_params_env": {
+        "STEP_MR_VAR_WINDOW": "257",
+        "STEP_MR_STEP_LONG_TICKS": "1574",
+        "STEP_MR_STEP_SHORT_TICKS": "160",
+        "STEP_MR_K_SD": "2.25",
+        "STEP_MR_SIGMA_FLOOR": "0.0010705876051900246",
+        "STEP_MR_Z_BUY": "3.0",
+        "STEP_MR_Z_SELL": "4.0"
+      },
+      "implement_ewma_params_env": {
+        "EWMA_MR_VAR_WINDOW": "542",
+        "EWMA_MR_ALPHA": "0.00884032982107404",
+        "EWMA_MR_Z_BUY": "3.6",
+        "EWMA_MR_Z_SELL": "3.8000000000000003"
+      }
+    },
+    {
+      "symbol": "SNACKPACK_VANILLA",
+      "step_mr_best": {
+        "best_objective_score": 23907.52484034842,
+        "best_params": {
+          "var_window": 762,
+          "step_long_ticks": 899,
+          "step_short_ticks": 97,
+          "step_k_sd": 3.5,
+          "sigma_floor": 0.0016274758911983159,
+          "z_buy": 2.7,
+          "z_sell": 2.9000000000000004
+        },
+        "final_pnl": 29780.0,
+        "mean_day_pnl": 9926.666666666666,
+        "pnl_spread": 4700.0,
+        "pnl_std": 1954.1252660859682,
+        "min_day_pnl": 7315.0,
+        "day_pnls": [
+          12015.0,
+          7315.0,
+          10450.0
+        ]
+      },
+      "ewma_mr_best": {
+        "best_objective_score": 11760.81318831473,
+        "best_params": {
+          "var_window": 394,
+          "alpha": 0.013718186743160459,
+          "z_buy": 2.1,
+          "z_sell": 3.7
+        },
+        "final_pnl": 23551.0,
+        "mean_day_pnl": 7850.333333333333,
+        "pnl_spread": 9244.0,
+        "pnl_std": 4243.644686142116,
+        "min_day_pnl": 1856.0,
+        "day_pnls": [
+          10595.0,
+          1856.0,
+          11100.0
+        ]
+      },
+      "comparison": {
+        "better_by_optuna_score": "STEP_MR",
+        "delta_best_objective_score": 12146.711652033688,
+        "delta_final_pnl_best_trial": 6229.0
+      },
+      "proposed_clean_trader_pick": "STEP_MR",
+      "implement_step_params_env": {
+        "STEP_MR_VAR_WINDOW": "762",
+        "STEP_MR_STEP_LONG_TICKS": "899",
+        "STEP_MR_STEP_SHORT_TICKS": "97",
+        "STEP_MR_K_SD": "3.5",
+        "STEP_MR_SIGMA_FLOOR": "0.0016274758911983159",
+        "STEP_MR_Z_BUY": "2.7",
+        "STEP_MR_Z_SELL": "2.9000000000000004"
+      },
+      "implement_ewma_params_env": {
+        "EWMA_MR_VAR_WINDOW": "394",
+        "EWMA_MR_ALPHA": "0.013718186743160459",
+        "EWMA_MR_Z_BUY": "2.1",
+        "EWMA_MR_Z_SELL": "3.7"
+      }
+    },
+    {
+      "symbol": "TRANSLATOR_ASTRO_BLACK",
+      "step_mr_best": {
+        "best_objective_score": 21714.468129596735,
+        "best_params": {
+          "var_window": 315,
+          "step_long_ticks": 1798,
+          "step_short_ticks": 124,
+          "step_k_sd": 10.25,
+          "sigma_floor": 0.00020862826837334157,
+          "z_buy": 4.0,
+          "z_sell": 1.6
+        },
+        "final_pnl": 21925.0,
+        "mean_day_pnl": 7308.333333333333,
+        "pnl_spread": 168.0,
+        "pnl_std": 70.8864506721058,
+        "min_day_pnl": 7237.0,
+        "day_pnls": [
+          7283.0,
+          7405.0,
+          7237.0
+        ]
+      },
+      "ewma_mr_best": {
+        "best_objective_score": 33876.45733202275,
+        "best_params": {
+          "var_window": 500,
+          "alpha": 0.012582664916859181,
+          "z_buy": 2.0,
+          "z_sell": 1.3
+        },
+        "final_pnl": 41228.0,
+        "mean_day_pnl": 13742.666666666666,
+        "pnl_spread": 5757.0,
+        "pnl_std": 2657.5711132954134,
+        "min_day_pnl": 9987.0,
+        "day_pnls": [
+          15497.0,
+          15744.0,
+          9987.0
+        ]
+      },
+      "comparison": {
+        "better_by_optuna_score": "EWMA_MR",
+        "delta_best_objective_score": -12161.989202426015,
+        "delta_final_pnl_best_trial": -19303.0
+      },
+      "proposed_clean_trader_pick": "EWMA_MR",
+      "implement_step_params_env": {
+        "STEP_MR_VAR_WINDOW": "315",
+        "STEP_MR_STEP_LONG_TICKS": "1798",
+        "STEP_MR_STEP_SHORT_TICKS": "124",
+        "STEP_MR_K_SD": "10.25",
+        "STEP_MR_SIGMA_FLOOR": "0.00020862826837334157",
+        "STEP_MR_Z_BUY": "4.0",
+        "STEP_MR_Z_SELL": "1.6"
+      },
+      "implement_ewma_params_env": {
+        "EWMA_MR_VAR_WINDOW": "500",
+        "EWMA_MR_ALPHA": "0.012582664916859181",
+        "EWMA_MR_Z_BUY": "2.0",
+        "EWMA_MR_Z_SELL": "1.3"
+      }
+    },
+    {
+      "symbol": "TRANSLATOR_ECLIPSE_CHARCOAL",
+      "step_mr_best": {
+        "best_objective_score": 30862.362699192134,
+        "best_params": {
+          "var_window": 501,
+          "step_long_ticks": 936,
+          "step_short_ticks": 77,
+          "step_k_sd": 3.25,
+          "sigma_floor": 0.0006092390082231277,
+          "z_buy": 2.8,
+          "z_sell": 2.6
+        },
+        "final_pnl": 49850.0,
+        "mean_day_pnl": 16616.666666666668,
+        "pnl_spread": 15244.0,
+        "pnl_std": 6239.395501346442,
+        "min_day_pnl": 9311.0,
+        "day_pnls": [
+          15984.0,
+          24555.0,
+          9311.0
+        ]
+      },
+      "ewma_mr_best": {
+        "best_objective_score": 35495.77687910469,
+        "best_params": {
+          "var_window": 483,
+          "alpha": 0.01434714576922636,
+          "z_buy": 2.8,
+          "z_sell": 2.8
+        },
+        "final_pnl": 45423.0,
+        "mean_day_pnl": 15141.0,
+        "pnl_spread": 7974.0,
+        "pnl_std": 3255.371868158844,
+        "min_day_pnl": 11154.0,
+        "day_pnls": [
+          11154.0,
+          15141.0,
+          19128.0
+        ]
+      },
+      "comparison": {
+        "better_by_optuna_score": "EWMA_MR",
+        "delta_best_objective_score": -4633.414179912557,
+        "delta_final_pnl_best_trial": 4427.0
+      },
+      "proposed_clean_trader_pick": "EWMA_MR",
+      "implement_step_params_env": {
+        "STEP_MR_VAR_WINDOW": "501",
+        "STEP_MR_STEP_LONG_TICKS": "936",
+        "STEP_MR_STEP_SHORT_TICKS": "77",
+        "STEP_MR_K_SD": "3.25",
+        "STEP_MR_SIGMA_FLOOR": "0.0006092390082231277",
+        "STEP_MR_Z_BUY": "2.8",
+        "STEP_MR_Z_SELL": "2.6"
+      },
+      "implement_ewma_params_env": {
+        "EWMA_MR_VAR_WINDOW": "483",
+        "EWMA_MR_ALPHA": "0.01434714576922636",
+        "EWMA_MR_Z_BUY": "2.8",
+        "EWMA_MR_Z_SELL": "2.8"
+      }
+    },
+    {
+      "symbol": "TRANSLATOR_GRAPHITE_MIST",
+      "step_mr_best": {
+        "best_objective_score": 19673.75786834771,
+        "best_params": {
+          "var_window": 413,
+          "step_long_ticks": 2304,
+          "step_short_ticks": 51,
+          "step_k_sd": 10.0,
+          "sigma_floor": 0.007396032028268962,
+          "z_buy": 3.6,
+          "z_sell": 3.6
+        },
+        "final_pnl": 21556.5,
+        "mean_day_pnl": 7185.5,
+        "pnl_spread": 1497.5,
+        "pnl_std": 642.0702194204825,
+        "min_day_pnl": 6298.0,
+        "day_pnls": [
+          7463.0,
+          6298.0,
+          7795.5
+        ]
+      },
+      "ewma_mr_best": {
+        "best_objective_score": 28052.29170176231,
+        "best_params": {
+          "var_window": 50,
+          "alpha": 0.051770713184769626,
+          "z_buy": 4.2,
+          "z_sell": 4.4
+        },
+        "final_pnl": 39129.0,
+        "mean_day_pnl": 13043.0,
+        "pnl_spread": 8725.0,
+        "pnl_std": 3919.5138303961457,
+        "min_day_pnl": 9837.0,
+        "day_pnls": [
+          10730.0,
+          9837.0,
+          18562.0
+        ]
+      },
+      "comparison": {
+        "better_by_optuna_score": "EWMA_MR",
+        "delta_best_objective_score": -8378.5338334146,
+        "delta_final_pnl_best_trial": -17572.5
+      },
+      "proposed_clean_trader_pick": "EWMA_MR",
+      "implement_step_params_env": {
+        "STEP_MR_VAR_WINDOW": "413",
+        "STEP_MR_STEP_LONG_TICKS": "2304",
+        "STEP_MR_STEP_SHORT_TICKS": "51",
+        "STEP_MR_K_SD": "10.0",
+        "STEP_MR_SIGMA_FLOOR": "0.007396032028268962",
+        "STEP_MR_Z_BUY": "3.6",
+        "STEP_MR_Z_SELL": "3.6"
+      },
+      "implement_ewma_params_env": {
+        "EWMA_MR_VAR_WINDOW": "50",
+        "EWMA_MR_ALPHA": "0.051770713184769626",
+        "EWMA_MR_Z_BUY": "4.2",
+        "EWMA_MR_Z_SELL": "4.4"
+      }
+    },
+    {
+      "symbol": "TRANSLATOR_SPACE_GRAY",
+      "step_mr_best": {
+        "best_objective_score": 29481.15026563648,
+        "best_params": {
+          "var_window": 490,
+          "step_long_ticks": 1941,
+          "step_short_ticks": 58,
+          "step_k_sd": 7.75,
+          "sigma_floor": 0.0005935046767959667,
+          "z_buy": 4.0,
+          "z_sell": 1.6
+        },
+        "final_pnl": 40004.0,
+        "mean_day_pnl": 13334.666666666666,
+        "pnl_spread": 8410.0,
+        "pnl_std": 3521.4162239392012,
+        "min_day_pnl": 9683.0,
+        "day_pnls": [
+          12228.0,
+          9683.0,
+          18093.0
+        ]
+      },
+      "ewma_mr_best": {
+        "best_objective_score": 14963.449281652815,
+        "best_params": {
+          "var_window": 574,
+          "alpha": 0.015334859931960447,
+          "z_buy": 2.7,
+          "z_sell": 1.9
+        },
+        "final_pnl": 31664.0,
+        "mean_day_pnl": 10554.666666666666,
+        "pnl_spread": 13236.0,
+        "pnl_std": 5774.251197245309,
+        "min_day_pnl": 5376.0,
+        "day_pnls": [
+          5376.0,
+          7676.0,
+          18612.0
+        ]
+      },
+      "comparison": {
+        "better_by_optuna_score": "STEP_MR",
+        "delta_best_objective_score": 14517.700983983665,
+        "delta_final_pnl_best_trial": 8340.0
+      },
+      "proposed_clean_trader_pick": "STEP_MR",
+      "implement_step_params_env": {
+        "STEP_MR_VAR_WINDOW": "490",
+        "STEP_MR_STEP_LONG_TICKS": "1941",
+        "STEP_MR_STEP_SHORT_TICKS": "58",
+        "STEP_MR_K_SD": "7.75",
+        "STEP_MR_SIGMA_FLOOR": "0.0005935046767959667",
+        "STEP_MR_Z_BUY": "4.0",
+        "STEP_MR_Z_SELL": "1.6"
+      },
+      "implement_ewma_params_env": {
+        "EWMA_MR_VAR_WINDOW": "574",
+        "EWMA_MR_ALPHA": "0.015334859931960447",
+        "EWMA_MR_Z_BUY": "2.7",
+        "EWMA_MR_Z_SELL": "1.9"
+      }
+    },
+    {
+      "symbol": "TRANSLATOR_VOID_BLUE",
+      "step_mr_best": {
+        "best_objective_score": 55019.930504617994,
+        "best_params": {
+          "var_window": 410,
+          "step_long_ticks": 2045,
+          "step_short_ticks": 97,
+          "step_k_sd": 3.25,
+          "sigma_floor": 0.00021003596928166602,
+          "z_buy": 1.3,
+          "z_sell": 2.2
+        },
+        "final_pnl": 59857.0,
+        "mean_day_pnl": 19952.333333333332,
+        "pnl_spread": 3881.0,
+        "pnl_std": 1593.449158970007,
+        "min_day_pnl": 17892.0,
+        "day_pnls": [
+          20192.0,
+          17892.0,
+          21773.0
+        ]
+      },
+      "ewma_mr_best": {
+        "best_objective_score": 26045.965149842283,
+        "best_params": {
+          "var_window": 263,
+          "alpha": 0.009182796537652993,
+          "z_buy": 1.6,
+          "z_sell": 2.2
+        },
+        "final_pnl": 30630.0,
+        "mean_day_pnl": 10210.0,
+        "pnl_spread": 3679.0,
+        "pnl_std": 1508.3914169295272,
+        "min_day_pnl": 8469.0,
+        "day_pnls": [
+          12148.0,
+          10013.0,
+          8469.0
+        ]
+      },
+      "comparison": {
+        "better_by_optuna_score": "STEP_MR",
+        "delta_best_objective_score": 28973.96535477571,
+        "delta_final_pnl_best_trial": 29227.0
+      },
+      "proposed_clean_trader_pick": "STEP_MR",
+      "implement_step_params_env": {
+        "STEP_MR_VAR_WINDOW": "410",
+        "STEP_MR_STEP_LONG_TICKS": "2045",
+        "STEP_MR_STEP_SHORT_TICKS": "97",
+        "STEP_MR_K_SD": "3.25",
+        "STEP_MR_SIGMA_FLOOR": "0.00021003596928166602",
+        "STEP_MR_Z_BUY": "1.3",
+        "STEP_MR_Z_SELL": "2.2"
+      },
+      "implement_ewma_params_env": {
+        "EWMA_MR_VAR_WINDOW": "263",
+        "EWMA_MR_ALPHA": "0.009182796537652993",
+        "EWMA_MR_Z_BUY": "1.6",
+        "EWMA_MR_Z_SELL": "2.2"
+      }
+    },
+    {
+      "symbol": "UV_VISOR_AMBER",
+      "step_mr_best": {
+        "best_objective_score": 41851.97592702797,
+        "best_params": {
+          "var_window": 408,
+          "step_long_ticks": 2498,
+          "step_short_ticks": 49,
+          "step_k_sd": 3.25,
+          "sigma_floor": 0.0004926308925746544,
+          "z_buy": 3.8000000000000003,
+          "z_sell": 2.6
+        },
+        "final_pnl": 44768.0,
+        "mean_day_pnl": 14922.666666666666,
+        "pnl_spread": 2317.0,
+        "pnl_std": 998.3734549533834,
+        "min_day_pnl": 13990.0,
+        "day_pnls": [
+          14471.0,
+          16307.0,
+          13990.0
+        ]
+      },
+      "ewma_mr_best": {
+        "best_objective_score": 22162.58674765782,
+        "best_params": {
+          "var_window": 330,
+          "alpha": 0.016037568068493845,
+          "z_buy": 4.0,
+          "z_sell": 1.5
+        },
+        "final_pnl": 33630.0,
+        "mean_day_pnl": 11210.0,
+        "pnl_spread": 9178.0,
+        "pnl_std": 3815.688753903634,
+        "min_day_pnl": 6111.0,
+        "day_pnls": [
+          15289.0,
+          12230.0,
+          6111.0
+        ]
+      },
+      "comparison": {
+        "better_by_optuna_score": "STEP_MR",
+        "delta_best_objective_score": 19689.389179370148,
+        "delta_final_pnl_best_trial": 11138.0
+      },
+      "proposed_clean_trader_pick": "STEP_MR",
+      "implement_step_params_env": {
+        "STEP_MR_VAR_WINDOW": "408",
+        "STEP_MR_STEP_LONG_TICKS": "2498",
+        "STEP_MR_STEP_SHORT_TICKS": "49",
+        "STEP_MR_K_SD": "3.25",
+        "STEP_MR_SIGMA_FLOOR": "0.0004926308925746544",
+        "STEP_MR_Z_BUY": "3.8000000000000003",
+        "STEP_MR_Z_SELL": "2.6"
+      },
+      "implement_ewma_params_env": {
+        "EWMA_MR_VAR_WINDOW": "330",
+        "EWMA_MR_ALPHA": "0.016037568068493845",
+        "EWMA_MR_Z_BUY": "4.0",
+        "EWMA_MR_Z_SELL": "1.5"
+      }
+    },
+    {
+      "symbol": "UV_VISOR_MAGENTA",
+      "step_mr_best": {
+        "best_objective_score": 31817.4495844152,
+        "best_params": {
+          "var_window": 483,
+          "step_long_ticks": 1597,
+          "step_short_ticks": 82,
+          "step_k_sd": 3.25,
+          "sigma_floor": 0.001101209996234473,
+          "z_buy": 2.7,
+          "z_sell": 2.9000000000000004
+        },
+        "final_pnl": 54058.5,
+        "mean_day_pnl": 18019.5,
+        "pnl_spread": 17407.5,
+        "pnl_std": 8055.917359308001,
+        "min_day_pnl": 11998.5,
+        "day_pnls": [
+          11998.5,
+          12654.0,
+          29406.0
+        ]
+      },
+      "ewma_mr_best": {
+        "best_objective_score": 6540.704930552235,
+        "best_params": {
+          "var_window": 450,
+          "alpha": 0.011137863225954728,
+          "z_buy": 2.6,
+          "z_sell": 3.6
+        },
+        "final_pnl": 19821.0,
+        "mean_day_pnl": 6607.0,
+        "pnl_spread": 10667.0,
+        "pnl_std": 4355.491782412942,
+        "min_day_pnl": 1329.0,
+        "day_pnls": [
+          6496.0,
+          11996.0,
+          1329.0
+        ]
+      },
+      "comparison": {
+        "better_by_optuna_score": "STEP_MR",
+        "delta_best_objective_score": 25276.744653862967,
+        "delta_final_pnl_best_trial": 34237.5
+      },
+      "proposed_clean_trader_pick": "STEP_MR",
+      "implement_step_params_env": {
+        "STEP_MR_VAR_WINDOW": "483",
+        "STEP_MR_STEP_LONG_TICKS": "1597",
+        "STEP_MR_STEP_SHORT_TICKS": "82",
+        "STEP_MR_K_SD": "3.25",
+        "STEP_MR_SIGMA_FLOOR": "0.001101209996234473",
+        "STEP_MR_Z_BUY": "2.7",
+        "STEP_MR_Z_SELL": "2.9000000000000004"
+      },
+      "implement_ewma_params_env": {
+        "EWMA_MR_VAR_WINDOW": "450",
+        "EWMA_MR_ALPHA": "0.011137863225954728",
+        "EWMA_MR_Z_BUY": "2.6",
+        "EWMA_MR_Z_SELL": "3.6"
+      }
+    },
+    {
+      "symbol": "UV_VISOR_ORANGE",
+      "step_mr_best": {
+        "best_objective_score": 1430.364307110256,
+        "best_params": {
+          "var_window": 224,
+          "step_long_ticks": 339,
+          "step_short_ticks": 30,
+          "step_k_sd": 9.75,
+          "sigma_floor": 0.00017237522955716985,
+          "z_buy": 3.9000000000000004,
+          "z_sell": 1.4
+        },
+        "final_pnl": 7611.0,
+        "mean_day_pnl": 2537.0,
+        "pnl_spread": 4949.0,
+        "pnl_std": 2052.72615481624,
+        "min_day_pnl": 319.0,
+        "day_pnls": [
+          2024.0,
+          5268.0,
+          319.0
+        ]
+      },
+      "ewma_mr_best": {
+        "best_objective_score": 9536.533672539834,
+        "best_params": {
+          "var_window": 637,
+          "alpha": 0.16102777078597785,
+          "z_buy": 2.7,
+          "z_sell": 1.8
+        },
+        "final_pnl": 15311.0,
+        "mean_day_pnl": 5103.666666666667,
+        "pnl_spread": 4628.0,
+        "pnl_std": 1910.7772124336095,
+        "min_day_pnl": 2588.0,
+        "day_pnls": [
+          7216.0,
+          2588.0,
+          5507.0
+        ]
+      },
+      "comparison": {
+        "better_by_optuna_score": "EWMA_MR",
+        "delta_best_objective_score": -8106.169365429578,
+        "delta_final_pnl_best_trial": -7700.0
+      },
+      "proposed_clean_trader_pick": "EWMA_MR",
+      "implement_step_params_env": {
+        "STEP_MR_VAR_WINDOW": "224",
+        "STEP_MR_STEP_LONG_TICKS": "339",
+        "STEP_MR_STEP_SHORT_TICKS": "30",
+        "STEP_MR_K_SD": "9.75",
+        "STEP_MR_SIGMA_FLOOR": "0.00017237522955716985",
+        "STEP_MR_Z_BUY": "3.9000000000000004",
+        "STEP_MR_Z_SELL": "1.4"
+      },
+      "implement_ewma_params_env": {
+        "EWMA_MR_VAR_WINDOW": "637",
+        "EWMA_MR_ALPHA": "0.16102777078597785",
+        "EWMA_MR_Z_BUY": "2.7",
+        "EWMA_MR_Z_SELL": "1.8"
+      }
+    },
+    {
+      "symbol": "UV_VISOR_RED",
+      "step_mr_best": {
+        "best_objective_score": 32600.851980828276,
+        "best_params": {
+          "var_window": 121,
+          "step_long_ticks": 1845,
+          "step_short_ticks": 168,
+          "step_k_sd": 10.5,
+          "sigma_floor": 0.004302886481397832,
+          "z_buy": 1.3,
+          "z_sell": 4.5
+        },
+        "final_pnl": 39571.0,
+        "mean_day_pnl": 13190.333333333334,
+        "pnl_spread": 5455.0,
+        "pnl_std": 2525.2466986195404,
+        "min_day_pnl": 9621.0,
+        "day_pnls": [
+          15076.0,
+          14874.0,
+          9621.0
+        ]
+      },
+      "ewma_mr_best": {
+        "best_objective_score": 32157.998215272855,
+        "best_params": {
+          "var_window": 203,
+          "alpha": 0.016597937764130186,
+          "z_buy": 1.7000000000000002,
+          "z_sell": 3.8000000000000003
+        },
+        "final_pnl": 37249.0,
+        "mean_day_pnl": 12416.333333333334,
+        "pnl_spread": 4004.0,
+        "pnl_std": 1811.6696412119095,
+        "min_day_pnl": 9862.0,
+        "day_pnls": [
+          13521.0,
+          9862.0,
+          13866.0
+        ]
+      },
+      "comparison": {
+        "better_by_optuna_score": "STEP_MR",
+        "delta_best_objective_score": 442.853765555421,
+        "delta_final_pnl_best_trial": 2322.0
+      },
+      "proposed_clean_trader_pick": "STEP_MR",
+      "implement_step_params_env": {
+        "STEP_MR_VAR_WINDOW": "121",
+        "STEP_MR_STEP_LONG_TICKS": "1845",
+        "STEP_MR_STEP_SHORT_TICKS": "168",
+        "STEP_MR_K_SD": "10.5",
+        "STEP_MR_SIGMA_FLOOR": "0.004302886481397832",
+        "STEP_MR_Z_BUY": "1.3",
+        "STEP_MR_Z_SELL": "4.5"
+      },
+      "implement_ewma_params_env": {
+        "EWMA_MR_VAR_WINDOW": "203",
+        "EWMA_MR_ALPHA": "0.016597937764130186",
+        "EWMA_MR_Z_BUY": "1.7000000000000002",
+        "EWMA_MR_Z_SELL": "3.8000000000000003"
+      }
+    },
+    {
+      "symbol": "UV_VISOR_YELLOW",
+      "step_mr_best": {
+        "best_objective_score": 18658.746467344015,
+        "best_params": {
+          "var_window": 387,
+          "step_long_ticks": 893,
+          "step_short_ticks": 56,
+          "step_k_sd": 8.5,
+          "sigma_floor": 0.009550936797838586,
+          "z_buy": 2.6,
+          "z_sell": 1.9
+        },
+        "final_pnl": 28189.0,
+        "mean_day_pnl": 9396.333333333334,
+        "pnl_spread": 7651.0,
+        "pnl_std": 3132.089221093309,
+        "min_day_pnl": 5407.0,
+        "day_pnls": [
+          9724.0,
+          13058.0,
+          5407.0
+        ]
+      },
+      "ewma_mr_best": {
+        "best_objective_score": 23251.601886796758,
+        "best_params": {
+          "var_window": 119,
+          "alpha": 0.2884841553684487,
+          "z_buy": 3.5,
+          "z_sell": 4.0
+        },
+        "final_pnl": 25200.0,
+        "mean_day_pnl": 8400.0,
+        "pnl_spread": 1535.0,
+        "pnl_std": 688.9968553387357,
+        "min_day_pnl": 7835.0,
+        "day_pnls": [
+          7995.0,
+          7835.0,
+          9370.0
+        ]
+      },
+      "comparison": {
+        "better_by_optuna_score": "EWMA_MR",
+        "delta_best_objective_score": -4592.855419452742,
+        "delta_final_pnl_best_trial": 2989.0
+      },
+      "proposed_clean_trader_pick": "EWMA_MR",
+      "implement_step_params_env": {
+        "STEP_MR_VAR_WINDOW": "387",
+        "STEP_MR_STEP_LONG_TICKS": "893",
+        "STEP_MR_STEP_SHORT_TICKS": "56",
+        "STEP_MR_K_SD": "8.5",
+        "STEP_MR_SIGMA_FLOOR": "0.009550936797838586",
+        "STEP_MR_Z_BUY": "2.6",
+        "STEP_MR_Z_SELL": "1.9"
+      },
+      "implement_ewma_params_env": {
+        "EWMA_MR_VAR_WINDOW": "119",
+        "EWMA_MR_ALPHA": "0.2884841553684487",
+        "EWMA_MR_Z_BUY": "3.5",
+        "EWMA_MR_Z_SELL": "4.0"
+      }
+    }
+  ]
+}
