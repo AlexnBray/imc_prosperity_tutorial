@@ -26,6 +26,10 @@ T1_YEARS = (1 * 5) / TRADING_DAYS_PER_YEAR   # 5/252  (1 week remaining after ch
 N_SIM = 500_000
 SEED = 42
 
+# Sigma prior for blended portfolio risk (matches max_ev_strategy.py)
+SIGMA_SCENARIOS = [2.30, 2.40, 2.47, 2.49, 2.51, 2.55, 2.60, 2.70]
+SIGMA_WEIGHTS   = [0.05, 0.10, 0.25, 0.15, 0.30, 0.10, 0.04, 0.01]
+
 # Confirmed from competition rules
 BINARY_PAYOFF = 10.0   # AC_40_BP: fixed cash payoff if S_T < 40 at expiry
 KO_BARRIER = 35.0      # AC_45_KO: option knocked out if price ever falls below 35
@@ -224,7 +228,7 @@ for name in sim_vals:
         action, trade_price, edge = "SELL", bid, edge_sell
     else:
         action, trade_price, edge = "n/a ", None, max(edge_buy, edge_sell)
-    exp_pnl = edge * size * CONTRACT_SIZE if action != "n/a " else 0.0
+    exp_pnl = edge * size if action != "n/a " else 0.0
     products.append({
         "name": name.strip(),
         "fair": fair,
@@ -260,7 +264,7 @@ print()
 print("=" * W)
 print("  RECOMMENDED TRADES")
 print(f"  {'Product':<30} {'Action':<5}  {'@ Price':>8}  {'Edge/unit':>10}  {'Max vol':>8}  {'Expected PnL':>14}")
-print(f"  {'':30}  {'':5}  {'':8}  {'':10}  {'':8}  {'(edge x vol x 3000)':>14}")
+print(f"  {'':30}  {'':5}  {'':8}  {'':10}  {'':8}  {'(edge x vol)':>14}")
 print("-" * W)
 for p in trades:
     print(
@@ -480,85 +484,185 @@ print("  Note: Kelly f* here is fraction of (unit payoff)^2 normalisation.")
 print("  Use half-Kelly in practice for robustness against model error.")
 print("=" * W)
 
-# --- YOUR PORTFOLIO (from image) --------------------------------------------
-# Trades exactly as entered in the UI screenshot:
-#   AC        Buy  200  @ 50.025  (underlying, settles at S_3wk)
-#   AC_50_P   Buy   50  @ 12.05
-#   AC_50_C   Sell  50  @ 12.00
-#   AC_35_P   Buy   50  @  4.35
-#   AC_40_P   Buy    0            (skipped)
-#   AC_45_P   Sell  50  @  9.05
-#   AC_60_C   Buy   50  @  8.85
-#   AC_50_P2  Buy   50  @  9.75
-#   AC_50_C2  Buy   50  @  9.75
-#   AC_50_CO  Buy   50  @ 22.30
-#   AC_40_BP  Buy   50  @  5.10
-#   AC_45_KO  Buy  250  @  0.175
+# --- YOUR PORTFOLIO (mutate_small strategy) ----------------------------------
+# Signed quantities: positive = BUY, negative = SELL
+PORT_POSITIONS = {
+    "AC_50_P":   ("BUY",   5,  12.05),
+    "AC_50_C":   ("BUY",  42,  12.05),
+    "AC_35_P":   ("SELL",  7,   4.33),
+    "AC_45_P":   ("BUY",  50,   9.10),
+    "AC_50_P_2": ("BUY",  50,   9.75),
+    "AC_50_C_2": ("BUY",  19,   9.75),
+    "AC_50_CO":  ("SELL", 50,  22.20),
+    "AC_40_BP":  ("SELL", 50,   5.00),
+    "AC_45_KO":  ("BUY", 370,   0.175),
+}
 
-port_rows = [
-    # label                      payoffs        is_buy  vol   entry  fair_val
-    ("AC        (underlying)",   S_3wk,          True,  200,  50.025, S0),
-    ("AC_50_P  (3wk put K=50)",  p_ac_50_P,      True,   50,  12.05, ana["AC_50_P  (3wk, K=50)"]),
-    ("AC_50_C  (3wk call K=50)", p_ac_50_C,      False,  50,  12.00, ana["AC_50_C  (3wk, K=50)"]),
-    ("AC_35_P  (3wk put K=35)",  p_ac_35_P,      True,   50,   4.35, ana["AC_35_P  (3wk, K=35)"]),
-    ("AC_45_P  (3wk put K=45)",  p_ac_45_P,      False,  50,   9.05, ana["AC_45_P  (3wk, K=45)"]),
-    ("AC_60_C  (3wk call K=60)", p_ac_60_C,      True,   50,   8.85, ana["AC_60_C  (3wk, K=60)"]),
-    ("AC_50_P2 (2wk put K=50)",  p_ac_50_P2,     True,   50,   9.75, ana["AC_50_P2 (2wk, K=50)"]),
-    ("AC_50_C2 (2wk call K=50)", p_ac_50_C2,     True,   50,   9.75, ana["AC_50_C2 (2wk, K=50)"]),
-    ("AC_50_CO (chooser)",       p_chooser,      False,  50,  22.20, ana["AC_50_CO chooser     "]),
-    ("AC_40_BP (binary put)",    p_binary_put,   False,  50,   5.00, ana[f"AC_40_BP binary(pay={BINARY_PAYOFF})"]),
-    ("AC_45_KO (KO put)",        p_ko_put,       True,  250,   0.175, sim_vals[f"AC_45_KO (barrier={KO_BARRIER}) "]),
-]
+PORT_LABELS = {
+    "AC_50_P":   "AC_50_P  (3wk put  K=50)",
+    "AC_50_C":   "AC_50_C  (3wk call K=50)",
+    "AC_35_P":   "AC_35_P  (3wk put  K=35)",
+    "AC_45_P":   "AC_45_P  (3wk put  K=45)",
+    "AC_50_P_2": "AC_50_P_2 (2wk put  K=50)",
+    "AC_50_C_2": "AC_50_C_2 (2wk call K=50)",
+    "AC_50_CO":  "AC_50_CO  (chooser  K=50)",
+    "AC_40_BP":  "AC_40_BP  (binary put K=40)",
+    "AC_45_KO":  "AC_45_KO  (KO put   K=45)",
+}
+
+def payoffs_for_sigma(sigma):
+    """Reuse the shared Z matrix; compute all option payoffs for a given sigma."""
+    log_inc  = (R - 0.5 * sigma**2) * DT + sigma * np.sqrt(DT) * Z
+    px = S0 * np.exp(np.cumsum(log_inc, axis=1))
+    s2 = px[:, T2_STEPS - 1]
+    s3 = px[:, T3_STEPS - 1]
+    breach = np.any(px[:, :T3_STEPS - 1] < KO_BARRIER, axis=1)
+    return {
+        "AC_50_P":   np.maximum(50 - s3, 0),
+        "AC_50_C":   np.maximum(s3 - 50, 0),
+        "AC_35_P":   np.maximum(35 - s3, 0),
+        "AC_45_P":   np.maximum(45 - s3, 0),
+        "AC_50_P_2": np.maximum(50 - s2, 0),
+        "AC_50_C_2": np.maximum(s2 - 50, 0),
+        "AC_50_CO":  np.where(s2 >= 50, np.maximum(s3 - 50, 0), np.maximum(50 - s3, 0)),
+        "AC_40_BP":  np.where(s3 < 40, BINARY_PAYOFF, 0.0),
+        "AC_45_KO":  np.where(breach, 0.0, np.maximum(45 - s3, 0)),
+    }
+
+def portfolio_pnl_for_sigma(sigma):
+    """Per-path portfolio PnL (vol x unit_pnl, no CONTRACT_SIZE) for a given sigma."""
+    pay = payoffs_for_sigma(sigma)
+    total = np.zeros(N_SIM)
+    for name, (side, qty, entry) in PORT_POSITIONS.items():
+        unit = (pay[name] - entry) if side == "BUY" else (entry - pay[name])
+        total += qty * unit
+    return total
+
+# --- Per-position table at model sigma (sigma=2.51) --------------------------
+pay_model = payoffs_for_sigma(SIGMA)
 
 print()
 print("=" * W)
-print("  YOUR PORTFOLIO  (all trades from image, including fairly-priced)")
-print(f"  {'Position':<32} {'Dir':>4}  {'Vol':>5}  {'Entry':>7}  {'Fair':>7}  {'E[PnL/unit]':>12}  {'Total E[PnL]':>13}")
+print(f"  YOUR PORTFOLIO  (per-position breakdown at model sigma={SIGMA})")
+print(f"  {'Position':<32} {'Dir':>4}  {'Vol':>5}  {'Entry':>7}  {'E[pay/u]':>9}  {'E[PnL/u]':>10}  {'Tot E[PnL]':>11}")
 print("-" * W)
 
-total_port_pnl = 0.0
-port_pnl_paths = np.zeros(N_SIM)
+for name, (side, qty, entry) in PORT_POSITIONS.items():
+    pay = pay_model[name]
+    unit_pnl = (pay - entry) if side == "BUY" else (entry - pay)
+    e_pay  = float(np.mean(pay))
+    e_unit = float(np.mean(unit_pnl))
+    tot    = e_unit * qty
+    print(f"  {PORT_LABELS[name]:<32} {side:>4}  {qty:>5}  {entry:>7.4f}  {e_pay:>9.4f}  {e_unit:>+10.4f}  {tot:>+11.2f}")
 
-for label, payoffs, is_buy, vol, entry, fair in port_rows:
-    if vol == 0:
-        continue
-    if is_buy:
-        unit_pnl = payoffs - entry
-        direction = "BUY"
+print("=" * W)
+
+# --- Sigma-blended portfolio risk summary ------------------------------------
+print()
+print(f"Blending portfolio PnL across {len(SIGMA_SCENARIOS)} sigma scenarios...")
+pnl_per_sigma = [portfolio_pnl_for_sigma(sig) for sig in SIGMA_SCENARIOS]
+
+w = np.array(SIGMA_WEIGHTS)
+E_per_sigma   = np.array([float(p.mean())       for p in pnl_per_sigma])
+P5_per_sigma  = np.array([float(np.percentile(p, 5))  for p in pnl_per_sigma])
+P1_per_sigma  = np.array([float(np.percentile(p, 1))  for p in pnl_per_sigma])
+Pl_per_sigma  = np.array([float((p < 0).mean()) for p in pnl_per_sigma])
+
+# Blended moments (weighted average across sigmas)
+E_blend  = float(np.dot(w, E_per_sigma))
+Pl_blend = float(np.dot(w, Pl_per_sigma))
+
+# Blended percentiles: build one giant weighted sample
+flat_pnl = np.concatenate(pnl_per_sigma)
+flat_w   = np.repeat(w, N_SIM) / N_SIM
+order    = np.argsort(flat_pnl)
+sp, sw   = flat_pnl[order], flat_w[order]
+cw       = np.cumsum(sw)
+def q_blend(p): return float(sp[np.searchsorted(cw, p, side="left")])
+P5_blend  = q_blend(0.05)
+P1_blend  = q_blend(0.01)
+P25_blend = q_blend(0.25)
+P75_blend = q_blend(0.75)
+P95_blend = q_blend(0.95)
+Std_blend = float(np.sqrt(np.dot(w, np.array([p.std()**2 for p in pnl_per_sigma])
+                                 + (E_per_sigma - E_blend)**2)))
+
+# Analytic mean: BS fair value for vanilla positions, MC for KO
+def analytic_unit_pnl(name, side, entry, sigma):
+    p = MKT_ANALYTIC[name]
+    if p["kind"] == "put":
+        fv = bs_put(S0, p["K"], p["T"], sigma)
+    elif p["kind"] == "call":
+        fv = bs_call(S0, p["K"], p["T"], sigma)
+    elif p["kind"] == "binary":
+        fv = bs_binary_put(S0, p["K"], p["T"], sigma, payoff=BINARY_PAYOFF)
+    elif p["kind"] == "chooser":
+        fv = bs_chooser(S0, p["K"], p["T"], T2_YEARS, sigma)
     else:
-        unit_pnl = entry - payoffs
-        direction = "SELL"
-    e_pnl_unit = float(np.mean(unit_pnl))
-    total_pnl_pos = e_pnl_unit * vol * CONTRACT_SIZE
-    total_port_pnl += total_pnl_pos
-    port_pnl_paths += unit_pnl * vol * CONTRACT_SIZE
-    edge = (fair - entry) if is_buy else (entry - fair)
-    edge_str = f"{edge:+.4f}"
-    print(
-        f"  {label:<32} {direction:>4}  {vol:>5,}  {entry:>7.4f}  {fair:>7.4f}"
-        f"  {e_pnl_unit:>+12.4f}  {total_pnl_pos:>13,.0f}"
-    )
+        return None  # KO: use MC
+    return fv - entry if side == "BUY" else entry - fv
 
+MKT_ANALYTIC = {
+    "AC_50_P":   dict(K=50, T=T3_YEARS, kind="put"),
+    "AC_50_C":   dict(K=50, T=T3_YEARS, kind="call"),
+    "AC_35_P":   dict(K=35, T=T3_YEARS, kind="put"),
+    "AC_45_P":   dict(K=45, T=T3_YEARS, kind="put"),
+    "AC_50_P_2": dict(K=50, T=T2_YEARS, kind="put"),
+    "AC_50_C_2": dict(K=50, T=T2_YEARS, kind="call"),
+    "AC_50_CO":  dict(K=50, T=T3_YEARS, kind="chooser"),
+    "AC_40_BP":  dict(K=40, T=T3_YEARS, kind="binary"),
+    "AC_45_KO":  dict(K=45, T=T3_YEARS, kind="ko"),
+}
+
+ana_E_per_sigma = []
+for sig, pnl_mc in zip(SIGMA_SCENARIOS, pnl_per_sigma):
+    e_ana = 0.0
+    for name, (side, qty, entry) in PORT_POSITIONS.items():
+        u = analytic_unit_pnl(name, side, entry, sig)
+        if u is not None:
+            e_ana += qty * u
+        else:
+            # KO: fall back to MC mean for this sigma
+            pay = payoffs_for_sigma(sig)["AC_45_KO"]
+            ko_unit = (pay - entry) if side == "BUY" else (entry - pay)
+            e_ana += qty * float(ko_unit.mean())
+    ana_E_per_sigma.append(e_ana)
+
+Ana_E_blend = float(np.dot(w, np.array(ana_E_per_sigma)))
+
+# Build blended analytic percentile via normal approximation (sigma of per-path PnL)
+# For a proper analytic p5 we use the blended MC p5 of vanilla legs + analytic means
+# Simple approach: report analytic mean, use MC for tails
+Ana_P5_blend = P5_blend + (Ana_E_blend - E_blend)   # shift MC tails by analytic vs MC mean gap
+
+print()
+print("=" * W)
+print("  PORTFOLIO RISK SUMMARY  (sigma-blended prior)")
+print(f"  Sigma scenarios : {SIGMA_SCENARIOS}")
+print(f"  Weights         : {SIGMA_WEIGHTS}")
 print("-" * W)
-print(f"  {'TOTAL EXPECTED PnL (all positions, vol x edge x 3000)':>72}  {total_port_pnl:>13,.0f}")
-
-port_std  = float(np.std(port_pnl_paths))
-port_p05  = float(np.percentile(port_pnl_paths, 5))
-port_p25  = float(np.percentile(port_pnl_paths, 25))
-port_p75  = float(np.percentile(port_pnl_paths, 75))
-port_p95  = float(np.percentile(port_pnl_paths, 95))
-prob_pos  = float(np.mean(port_pnl_paths > 0))
-
+print(f"  {'Sigma':>5}  {'Weight':>7}  {'MC mean':>9}  {'MC p5':>9}  {'MC p1':>9}  {'P(loss)':>9}")
+print("-" * W)
+for sig, wt, e, p5, p1, pl in zip(SIGMA_SCENARIOS, SIGMA_WEIGHTS,
+                                   E_per_sigma, P5_per_sigma, P1_per_sigma, Pl_per_sigma):
+    flag = "  <- model" if abs(sig - SIGMA) < 0.005 else ""
+    print(f"  {sig:>5.2f}  {wt:>6.0%}   {e:>+9.2f}  {p5:>+9.2f}  {p1:>+9.2f}  {pl*100:>8.1f}%{flag}")
+print("-" * W)
+print(f"  {'BLENDED':>5}  {'100%':>7}   {E_blend:>+9.2f}  {P5_blend:>+9.2f}  {P1_blend:>+9.2f}  {Pl_blend*100:>8.1f}%")
 print("=" * W)
 print()
 print("=" * W)
-print("  PORTFOLIO RISK SUMMARY")
+print("  PORTFOLIO RISK SUMMARY  (blended distribution)")
 print("-" * W)
-print(f"  Expected PnL      : {total_port_pnl:>+14,.0f}")
-print(f"  Std Dev (1-sigma) : {port_std:>+14,.0f}")
-print(f"  P(profit > 0)     : {prob_pos*100:>13.1f}%")
-print(f"  5th  percentile   : {port_p05:>+14,.0f}")
-print(f"  25th percentile   : {port_p25:>+14,.0f}")
-print(f"  75th percentile   : {port_p75:>+14,.0f}")
-print(f"  95th percentile   : {port_p95:>+14,.0f}")
+print(f"  MC   mean        : {E_blend:>+12.2f}")
+print(f"  MC   p5          : {P5_blend:>+12.2f}")
+print(f"  MC   p1          : {P1_blend:>+12.2f}")
+print(f"  MC   loss        : {Pl_blend*100:>12.2f}%")
+print(f"  Analytic mean    : {Ana_E_blend:>+12.2f}")
+print(f"  Analytic p5 (est): {Ana_P5_blend:>+12.2f}")
+print("-" * W)
+print(f"  Std Dev          : {Std_blend:>+12.2f}")
+print(f"  25th percentile  : {P25_blend:>+12.2f}")
+print(f"  75th percentile  : {P75_blend:>+12.2f}")
+print(f"  95th percentile  : {P95_blend:>+12.2f}")
 print("=" * W)
